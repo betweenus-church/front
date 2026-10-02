@@ -1,0 +1,7 @@
+node_modules/
+.next/
+.next-dev/
+.pnpm-store/
+*.tsbuildinfo
+.env*
+.vercel/

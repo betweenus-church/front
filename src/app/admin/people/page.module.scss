@@ -1,0 +1,284 @@
+.grid {
+    display: grid;
+    grid-template-columns: minmax(385px, 1fr) minmax(0, 1fr);
+    gap: 22px;
+}
+.listPanel,
+.detailPanel {
+    min-width: 0;
+    min-height: 650px;
+    border: 1px solid #e6ece7;
+    border-radius: 14px;
+    background: #fff;
+}
+.listPanel {
+    padding: 25px 31px;
+}
+.listPanel h2,
+.detail h2 {
+    margin: 0 0 20px;
+    color: #2b4033;
+    font-size: 20px;
+}
+.search {
+    width: 100%;
+    height: 43px;
+    padding: 0 15px;
+    border: 1px solid #e1e8e2;
+    border-radius: 7px;
+    color: #304538;
+    background: #fff;
+    font: inherit;
+    font-size: 14px;
+}
+.search::placeholder {
+    color: #abb7ad;
+}
+.tabs {
+    display: flex;
+    gap: 27px;
+    margin-top: 20px;
+    border-bottom: 1px solid #edf1ed;
+}
+.tabs button {
+    min-height: 42px;
+    padding: 0 0 10px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: #87948a;
+    background: none;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.tabs .activeTab {
+    border-bottom-color: #356f53;
+    color: #326b4f;
+    font-weight: 700;
+}
+.memberList {
+    display: grid;
+}
+.memberList > button {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr 0.9fr;
+    gap: 12px;
+    width: 100%;
+    min-height: 62px;
+    align-items: center;
+    padding: 0 15px;
+    border: 0;
+    border-radius: 6px;
+    color: #576a5d;
+    background: #fff;
+    text-align: left;
+}
+.memberList > button:hover,
+.memberList > .selectedMember {
+    background: #eaf3ec;
+}
+.memberList strong {
+    color: #294334;
+    font-size: 14px;
+}
+.memberList span,
+.memberList em {
+    font-size: 13px;
+    font-style: normal;
+    white-space: nowrap;
+}
+.memberList .limited {
+    color: #b36359;
+}
+.memberList .pending {
+    color: #9b8650;
+}
+.empty {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    padding: 45px 12px;
+    color: #78877b;
+    font-size: 14px;
+}
+.empty button {
+    border: 0;
+    color: #347255;
+    background: none;
+    font-weight: 700;
+}
+.detailPanel {
+    display: flex;
+}
+.noSelection {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    color: #78877b;
+    font-size: 16px;
+}
+.detail {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    padding: 26px 31px;
+}
+.fields {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+}
+.fields > div,
+.fields > label {
+    display: grid;
+    gap: 8px;
+    color: #526356;
+    font-size: 14px;
+    font-weight: 700;
+}
+.fields dd {
+    margin: 0;
+    min-height: 27px;
+    padding: 4px 9px;
+    color: #475c4c;
+    font-weight: 400;
+}
+.fields input {
+    width: 100%;
+    height: 43px;
+    padding: 0 12px;
+    border: 1px solid #e1e8e2;
+    border-radius: 7px;
+    color: #405446;
+    background: #fff;
+    font: inherit;
+    font-weight: 400;
+}
+.fields input[readonly] {
+    color: #74857a;
+    background: #f9faf9;
+}
+.hint {
+    margin: 22px 0 12px;
+    color: #859388;
+    font-size: 13px;
+}
+.detailActions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: auto;
+}
+.detailActions button {
+    min-width: 0;
+    flex: 1;
+}
+.passwordReset {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+}
+.passwordReset > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.passwordReset p {
+    width: 100%;
+    margin: 0;
+    color: #596b5d;
+    font-size: 13px;
+    line-height: 1.6;
+}
+.temporaryPassword {
+    display: block;
+    width: 100%;
+    overflow-wrap: anywhere;
+    padding: 12px;
+    border: 1px solid #dbe7de;
+    border-radius: 8px;
+    background: #f5faf6;
+    font-size: 14px;
+}
+.reasonField {
+    display: grid;
+    gap: 10px;
+    margin-top: 25px;
+    color: #435748;
+    font-size: 14px;
+    font-weight: 700;
+}
+.reasonField input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid #dee8e0;
+    border-radius: 7px;
+    color: #374c3c;
+    background: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 400;
+}
+.reasonField input[aria-invalid="true"] {
+    border-color: #bd655d;
+}
+.fieldError {
+    margin: 7px 0 0;
+    color: #b85149;
+    font-size: 13px;
+}
+.resultActions {
+    display: flex;
+    gap: 12px;
+    margin-top: 23px;
+}
+.resultActions button {
+    margin-top: 0 !important;
+}
+@media (max-width: 1100px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    .listPanel,
+    .detailPanel {
+        min-height: 0;
+    }
+    .detailPanel {
+        min-height: 440px;
+    }
+}
+@media (max-width: 720px) {
+    .grid {
+        gap: 12px;
+    }
+    .listPanel,
+    .detail {
+        padding: 18px 15px;
+    }
+    .listPanel h2,
+    .detail h2 {
+        font-size: 18px;
+    }
+    .tabs {
+        gap: 17px;
+        overflow-x: auto;
+    }
+    .memberList > button {
+        grid-template-columns: 0.8fr 1.2fr 0.8fr;
+        gap: 4px;
+        padding: 0 5px;
+    }
+    .memberList strong,
+    .memberList span,
+    .memberList em {
+        font-size: 11px;
+    }
+    .detailActions {
+        flex-wrap: wrap;
+    }
+    .resultActions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
