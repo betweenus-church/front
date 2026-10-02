@@ -1,0 +1,127 @@
+.detailBody {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 22px 26px 26px;
+}
+.detailBody dl {
+    margin: 0;
+}
+.detailBody dl > div {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    min-height: 46px;
+    border-bottom: 1px solid #edf1ed;
+}
+.detailBody dt {
+    color: #87968a;
+    font-size: 13px;
+}
+.detailBody dd {
+    margin: 0;
+    color: #3c5042;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+.excerpt {
+    margin-top: 22px;
+    padding: 18px;
+    border-radius: 9px;
+    background: #f7f9f7;
+}
+.excerpt strong {
+    color: #394d40;
+    font-size: 14px;
+}
+.excerpt p {
+    margin: 11px 0;
+    color: #65756a;
+    font-size: 14px;
+}
+.excerpt small {
+    color: #89978c;
+    font-size: 12px;
+}
+.status {
+    padding: 6px 10px;
+    border-radius: 99px;
+    color: #b16459;
+    background: #fbefec;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.savedOutcome {
+    color: #607464;
+    font-size: 13px;
+}
+.dangerButton {
+    display: inline-flex;
+    min-width: 120px;
+    min-height: 45px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    border: 1px solid #efdcd7;
+    border-radius: 8px;
+    color: #a2574d;
+    background: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+}
+.dangerButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.outcomeField {
+    display: grid;
+    gap: 10px;
+    color: #46594b;
+    font-size: 14px;
+    font-weight: 700;
+}
+.outcomeField input {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid #dfe9e1;
+    border-radius: 8px;
+    color: #334b3a;
+    background: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 400;
+}
+.outcomeField input[aria-invalid="true"] {
+    border-color: #bd655d;
+}
+.resultActions {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+}
+.resultActions button {
+    margin-top: 0 !important;
+}
+@media (max-width: 720px) {
+    .detailBody {
+        padding: 16px;
+    }
+    .detailBody dl > div {
+        grid-template-columns: 95px minmax(0, 1fr);
+    }
+    .actions {
+        flex-wrap: wrap;
+    }
+    .actions button {
+        min-width: 0;
+        flex: 1;
+    }
+    .resultActions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

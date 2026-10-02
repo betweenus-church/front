@@ -1,0 +1,19 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+    return {
+        id: "/",
+        name: "사이 · 청년부 공동체",
+        short_name: "사이",
+        description: "말씀과 일상을 나누는 우리 공간",
+        start_url: "/",
+        display: "standalone",
+        background_color: "#386b56",
+        theme_color: "#386b56",
+        icons: [
+            { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+            { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+            { src: "/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+        ],
+    };
+}
