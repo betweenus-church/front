@@ -7,6 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "사이",
         description: "말씀과 일상을 나누는 우리 공간",
         start_url: "/",
+        scope: "/",
         display: "standalone",
         background_color: "#386b56",
         theme_color: "#386b56",

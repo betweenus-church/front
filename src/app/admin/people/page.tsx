@@ -7,6 +7,7 @@ import common from "../approvals/page.module.scss";
 import styles from "./page.module.scss";
 import { api, ApiError, json } from "../../../lib/api";
 import { useAdminCounts } from "../use-admin-counts";
+import AdminNewsIcon from "../../../components/AdminNewsIcon";
 
 type Step =
     | "M01"
@@ -239,6 +240,10 @@ export default function AdminPeoplePage() {
                     <Link className={shell.activeNav} href="/admin/people" aria-current="page">
                         <Icon name="users" />
                         구성원 관리
+                    </Link>
+                    <Link href="/admin/news">
+                        <AdminNewsIcon />
+                        교회 소식
                     </Link>
                     <Link href="/admin/settings">
                         <Icon name="settings" />

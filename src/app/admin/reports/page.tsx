@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api, json } from "../../../lib/api";
 import { useAdminCounts } from "../use-admin-counts";
+import AdminNewsIcon from "../../../components/AdminNewsIcon";
 import Link from "next/link";
 import shell from "../members/page.module.scss";
 import common from "../approvals/page.module.scss";
@@ -15,6 +16,7 @@ type Filter = "pending" | "reviewing" | "done" | "all";
 type Report = {
     id: string;
     kind: string;
+    hasPhoto: boolean;
     target: string;
     reason: string;
     excerpt: string;
@@ -25,7 +27,7 @@ type Report = {
 
 type ApiReport = { id: number; kind: "photo" | "word" | "prayer" | "comment"; postId: number; reason: string; excerpt: string | null; createdAt: string; status: "pending" | "resolved"; action: string | null; resolution: string | null };
 const kindLabel = { photo: "사진", word: "말씀", prayer: "기도 나눔", comment: "댓글" };
-const toReport = (item: ApiReport): Report => ({ id: `R-${item.id}`, kind: kindLabel[item.kind], target: `${item.kind === "comment" ? "댓글" : "게시물"} · #${item.postId}`, reason: item.reason, excerpt: item.excerpt ?? "신고된 콘텐츠를 찾을 수 없습니다.", receivedAt: new Date(item.createdAt).toLocaleString("ko-KR"), status: item.status === "pending" ? "pending" : item.action === "dismiss" ? "completed" : "deleted", outcome: item.resolution ?? undefined });
+const toReport = (item: ApiReport): Report => ({ id: `R-${item.id}`, kind: kindLabel[item.kind], hasPhoto: item.kind === "photo" || item.kind === "comment", target: `${item.kind === "comment" ? "댓글" : "게시물"} · #${item.postId}`, reason: item.reason, excerpt: item.excerpt ?? "신고된 콘텐츠를 찾을 수 없습니다.", receivedAt: new Date(item.createdAt).toLocaleString("ko-KR"), status: item.status === "pending" ? "pending" : item.action === "dismiss" ? "completed" : "deleted", outcome: item.resolution ?? undefined });
 const filters: { id: Filter; label: string }[] = [
     { id: "pending", label: "미처리" },
     { id: "reviewing", label: "검토 중" },
@@ -38,6 +40,12 @@ const labels: Record<Status, string> = {
     completed: "검토 완료",
     deleted: "게시글 삭제",
 };
+
+function ReportPhoto({ id }: { id: string }) {
+    const [failed, setFailed] = useState(false);
+    if (failed) return <p className={styles.imageUnavailable}>사진을 불러올 수 없습니다. 원본이 삭제되었을 수 있어요.</p>;
+    return <img className={styles.reportImage} src={`/api/admin/reports/${id.slice(2)}/image`} alt="신고된 게시물 사진" onError={() => setFailed(true)} />;
+}
 
 function Icon({ name }: { name: "grid" | "clipboard" | "warning" | "users" | "settings" }) {
     const paths = {
@@ -99,7 +107,7 @@ export default function AdminReportsPage() {
     const [outcome, setOutcome] = useState("");
     const [notice, setNotice] = useState("");
     const [action, setAction] = useState<Action>("complete");
-    const outcomeRef = useRef<HTMLInputElement>(null);
+    const outcomeRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => { void api<ApiReport[]>("/admin/reports").then((items) => setReports(items.map(toReport))).catch(() => setNotice("신고 목록을 불러오지 못했어요.")); }, []);
     useEffect(() => {
@@ -141,11 +149,8 @@ export default function AdminReportsPage() {
     function startAction(next: Action) {
         if (!selected || selected.status !== "pending") return;
         setAction(next);
-        if (next === "complete") {
-            setStep("B03");
-        } else {
-            processReport(next);
-        }
+        setOutcome("");
+        setStep("B03");
     }
     async function processReport(next: Action) {
         if (!selected) return;
@@ -153,17 +158,17 @@ export default function AdminReportsPage() {
         setAction(next);
         setStep("B07");
         try {
-            await api(`/admin/reports/${Number(id.slice(2))}/resolve`, json("POST", { action: next === "delete" ? "delete" : "dismiss", resolution: next === "delete" ? "신고된 콘텐츠를 숨겼습니다." : outcome.trim() }));
+            await api(`/admin/reports/${Number(id.slice(2))}/resolve`, json("POST", { action: next === "delete" ? "delete" : "dismiss", resolution: outcome.trim() }));
             setReports((await api<ApiReport[]>("/admin/reports")).map(toReport));
             setStep(next === "delete" ? "B06" : "B05");
         } catch { setStep("B08"); }
     }
-    function confirmComplete() {
+    function confirmAction() {
         if (!outcome.trim()) {
             setStep("B04");
             return;
         }
-        processReport("complete");
+        void processReport(action);
     }
 
     const result = ["B05", "B06", "B07", "B08"].includes(step);
@@ -194,6 +199,10 @@ export default function AdminReportsPage() {
                     <Link href="/admin/people">
                         <Icon name="users" />
                         구성원 관리
+                    </Link>
+                    <Link href="/admin/news">
+                        <AdminNewsIcon />
+                        교회 소식
                     </Link>
                     <Link href="/admin/settings">
                         <Icon name="settings" />
@@ -252,7 +261,7 @@ export default function AdminReportsPage() {
                                         <p>
                                             대상: {selected?.target} · {selected?.id}
                                         </p>
-                                        <p>신고 및 게시물 상태를 변경했어요.</p>
+                                        <p>작성자의 내 소식함에 삭제 사유를 남겼어요. 알림을 허용한 기기에는 푸시도 발송합니다.</p>
                                     </>
                                 )}
                                 {step === "B07" && (
@@ -398,6 +407,7 @@ export default function AdminReportsPage() {
                                         </dl>
                                         <div className={styles.excerpt}>
                                             <strong>신고된 콘텐츠</strong>
+                                            {selected.hasPhoto && <ReportPhoto key={selected.id} id={selected.id} />}
                                             <p>{selected.excerpt}</p>
                                             <small>신고 대상의 내용과 맥락을 확인한 뒤 처리해 주세요.</small>
                                         </div>
@@ -446,37 +456,39 @@ export default function AdminReportsPage() {
                         aria-modal="true"
                         aria-labelledby="report-dialog-title"
                     >
-                        <h2 id="report-dialog-title">조치 없이 검토를 마칠까요?</h2>
+                        <h2 id="report-dialog-title">{action === "delete" ? "게시물을 삭제할까요?" : "조치 없이 검토를 마칠까요?"}</h2>
                         <p>
-                            신고된 결과와 판단 근거를 기록해 주세요.
+                            {action === "delete" ? "작성자에게 전달할 삭제 사유를 적어 주세요." : "신고된 결과와 판단 근거를 기록해 주세요."}
                             <br />
                             다시 게시물을 검토하고 싶다면 취소해 주세요.
                         </p>
                         <label className={styles.outcomeField}>
-                            검토 결과 · 필수
-                            <input
+                            {action === "delete" ? "삭제 사유 · 작성자에게 전달" : "검토 결과 · 필수"}
+                            <textarea
                                 ref={outcomeRef}
+                                rows={4}
+                                maxLength={500}
                                 value={outcome}
                                 onChange={(event) => {
                                     setOutcome(event.target.value);
                                     if (step === "B04") setStep("B03");
                                 }}
-                                placeholder="검토 결과를 입력해 주세요."
+                                placeholder={action === "delete" ? "예: 다른 구성원에 대한 비방 내용이 포함되어 삭제했습니다." : "검토 결과를 입력해 주세요."}
                                 aria-invalid={step === "B04"}
                                 aria-describedby={step === "B04" ? "report-outcome-error" : undefined}
                             />
                         </label>
                         {step === "B04" && (
                             <p className={common.error} id="report-outcome-error">
-                                검토 결과를 입력해야 다음 단계로 이동할 수 있어요.
+                                {action === "delete" ? "작성자에게 전달할 삭제 사유를 입력해 주세요." : "검토 결과를 입력해야 다음 단계로 이동할 수 있어요."}
                             </p>
                         )}
                         <div className={common.dialogActions}>
                             <button className={common.secondaryButton} type="button" onClick={() => setStep("B02")}>
                                 취소
                             </button>
-                            <button className={common.primaryButton} type="button" onClick={confirmComplete}>
-                                검토 완료
+                            <button className={common.primaryButton} type="button" onClick={confirmAction}>
+                                {action === "delete" ? "삭제하고 사유 알리기" : "검토 완료"}
                             </button>
                         </div>
                     </section>

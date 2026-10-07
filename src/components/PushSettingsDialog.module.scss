@@ -1,0 +1,56 @@
+.backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(16 35 27 / 55%);
+}
+.dialog {
+  position: relative;
+  width: min(100%, 420px);
+  padding: 28px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgb(0 0 0 / 18%);
+  color: #253b30;
+}
+.close {
+  position: absolute;
+  top: 15px;
+  right: 17px;
+  border: 0;
+  background: none;
+  color: #61756a;
+  font-size: 26px;
+  cursor: pointer;
+}
+.eyebrow { color: #376f55; font-size: 12px; font-weight: 700; }
+.dialog h2 { margin: 9px 0 8px; font-size: 23px; }
+.dialog > p { color: #65766b; font-size: 14px; line-height: 1.6; }
+.schedule {
+  display: grid;
+  gap: 5px;
+  margin: 22px 0;
+  padding: 16px;
+  border-radius: 12px;
+  background: #edf5ef;
+}
+.schedule span, .schedule small { color: #658071; font-size: 12px; }
+.schedule strong { color: #24583f; font-size: 18px; }
+.state { margin: 0 0 13px; }
+.action {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 10px;
+  background: #326b51;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.action:disabled { opacity: .55; cursor: wait; }
+.dialog .help { color: #8a6a2f; }
+.dialog .error { color: #b44940; }

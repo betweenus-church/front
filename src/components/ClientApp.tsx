@@ -5,9 +5,15 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Area, useChurchStore } from "../store/useChurchStore";
 import { ApiError, api } from "../lib/api";
-import { churchToday, displayDate, shiftDate, type DailyWord } from "../lib/daily-word";
+import { churchToday, displayDate, scriptureCredit, shiftDate, type DailyWord } from "../lib/daily-word";
 import WordDatePicker from "./WordDatePicker";
 import type { WordPost } from "../store/useChurchStore";
+import { NewsItem, newsCategoryLabels, newsDate } from "../lib/news";
+import MemberAvatar from "./MemberAvatar";
+import PushSettingsDialog from "./PushSettingsDialog";
+import InstallAppButton from "./InstallAppButton";
+import SplashScreen from "./SplashScreen";
+import InboxPage, { type InboxResponse } from "./InboxPage";
 
 const navItems: { id: Area; label: string; icon: string }[] = [
     { id: "home", label: "홈", icon: "home" },
@@ -83,6 +89,12 @@ function Icon({ name }: { name: string }) {
             </>
         ),
         check: <path d="m5 12 4 4L19 6" />,
+        bell: (
+            <>
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 9h18c0-1-3-2-3-9Z" />
+                <path d="M10 21h4" />
+            </>
+        ),
     };
     return (
         <svg
@@ -165,6 +177,7 @@ export default function Page() {
         setName,
         church,
         setChurch,
+        avatarUrl,
         membershipStatus,
         hasPassword,
         mustChangePassword,
@@ -176,6 +189,8 @@ export default function Page() {
         setMemberPassword,
         changeMemberPassword,
         logoutMember,
+        uploadAvatar,
+        removeAvatar,
         prayerDraft,
         setPrayerDraft,
         addPrayer,
@@ -195,7 +210,18 @@ export default function Page() {
     } = useChurchStore();
     const area = (pathname.split("/")[2] as Area) || storedArea;
     const isPreview = !sessionReady || membershipStatus !== "approved" || mustChangePassword;
-    const route = pathname === "/start" ? "start" : pathname === "/signup" ? "signup" : pathname === "/login" ? "login" : pathname === "/change-password" ? "change-password" : pathname === "/pending" ? "pending" : "app";
+    const route =
+        pathname === "/start"
+            ? "start"
+            : pathname === "/signup"
+              ? "signup"
+              : pathname === "/login"
+                ? "login"
+                : pathname === "/change-password"
+                  ? "change-password"
+                  : pathname === "/pending"
+                    ? "pending"
+                    : "app";
     function setRoute(next: "start" | "signup" | "login") {
         router.push(`/${next}`);
     }
@@ -240,9 +266,14 @@ export default function Page() {
     const [postAction, setPostAction] = useState<PostAction | null>(null);
     const [actionView, setActionView] = useState<"menu" | "report" | "delete">("menu");
     const [reportReason, setReportReason] = useState("");
+    const [reportOther, setReportOther] = useState("");
     const [approvalNoticeOpen, setApprovalNoticeOpen] = useState(false);
+    const [pushSettingsOpen, setPushSettingsOpen] = useState(false);
     const photoInput = useRef<HTMLInputElement>(null);
+    const avatarInput = useRef<HTMLInputElement>(null);
+    const [avatarBusy, setAvatarBusy] = useState(false);
     const [showToast, setShowToast] = useState(false);
+    const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
 
     function requireApproval() {
         if (isPreview) {
@@ -262,7 +293,7 @@ export default function Page() {
         const updateToday = () => {
             const date = churchToday();
             if (date !== lastDate) {
-                setSelectedDate((current) => !current || current === lastDate ? date : current);
+                setSelectedDate((current) => (!current || current === lastDate ? date : current));
                 lastDate = date;
             } else {
                 setSelectedDate((current) => current || date);
@@ -272,9 +303,18 @@ export default function Page() {
         const scheduleMidnight = () => {
             window.clearTimeout(timer);
             const nextMidnight = Date.parse(`${shiftDate(churchToday(), 1)}T00:00:00+09:00`);
-            timer = window.setTimeout(() => { updateToday(); scheduleMidnight(); }, Math.max(100, nextMidnight - Date.now() + 100));
+            timer = window.setTimeout(
+                () => {
+                    updateToday();
+                    scheduleMidnight();
+                },
+                Math.max(100, nextMidnight - Date.now() + 100),
+            );
         };
-        const resume = () => { updateToday(); scheduleMidnight(); };
+        const resume = () => {
+            updateToday();
+            scheduleMidnight();
+        };
         updateToday();
         scheduleMidnight();
         window.addEventListener("focus", resume);
@@ -291,7 +331,10 @@ export default function Page() {
         const controller = new AbortController();
         setTodayWordStatus("loading");
         void api<DailyWord>(`/daily-word?date=${todayDate}`, { signal: controller.signal })
-            .then((value) => { setTodayWord(value); setTodayWordStatus("ready"); })
+            .then((value) => {
+                setTodayWord(value);
+                setTodayWordStatus("ready");
+            })
             .catch((error: unknown) => {
                 if (controller.signal.aborted) return;
                 setTodayWord(null);
@@ -305,7 +348,10 @@ export default function Page() {
         const controller = new AbortController();
         setSelectedWordStatus("loading");
         void api<DailyWord>(`/daily-word?date=${selectedDate}`, { signal: controller.signal })
-            .then((value) => { setSelectedWord(value); setSelectedWordStatus("ready"); })
+            .then((value) => {
+                setSelectedWord(value);
+                setSelectedWordStatus("ready");
+            })
             .catch((error: unknown) => {
                 if (controller.signal.aborted) return;
                 setSelectedWord(null);
@@ -323,7 +369,10 @@ export default function Page() {
         const controller = new AbortController();
         setDatedPostsStatus("loading");
         void api<WordPost[]>(`/words?date=${selectedDate}`, { signal: controller.signal })
-            .then((posts) => { setDatedWordPosts(posts); setDatedPostsStatus("ready"); })
+            .then((posts) => {
+                setDatedWordPosts(posts);
+                setDatedPostsStatus("ready");
+            })
             .catch(() => {
                 if (controller.signal.aborted) return;
                 setDatedWordPosts([]);
@@ -337,10 +386,40 @@ export default function Page() {
             setStoredArea(area);
         }
         if (sessionReady && mustChangePassword && pathname !== "/change-password") router.replace("/change-password");
+        else if (sessionReady && membershipStatus !== "none" && ["/start", "/login", "/signup"].includes(pathname))
+            router.replace(membershipStatus === "approved" ? "/community/home" : "/pending");
         else if (pathname === "/pending" && membershipStatus === "approved") router.replace("/community/home");
-        else if (sessionReady && pathname === "/change-password" && membershipStatus === "none") router.replace("/login");
+        else if (sessionReady && pathname === "/change-password" && membershipStatus === "none")
+            router.replace("/login");
         if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js");
     }, [pathname, area, membershipStatus, mustChangePassword, sessionReady, router, setStoredArea]);
+
+    useEffect(() => {
+        if (!sessionReady || isPreview) {
+            setInboxUnreadCount(0);
+            return;
+        }
+        let active = true;
+        const refreshCount = async () => {
+            try {
+                const response = await api<InboxResponse>("/inbox");
+                if (active) setInboxUnreadCount(response.unreadCount);
+            } catch {
+                // The inbox screen gives a retry action; the header stays quiet on failure.
+            }
+        };
+        void refreshCount();
+        const onVisible = () => {
+            if (document.visibilityState === "visible") void refreshCount();
+        };
+        window.addEventListener("focus", refreshCount);
+        document.addEventListener("visibilitychange", onVisible);
+        return () => {
+            active = false;
+            window.removeEventListener("focus", refreshCount);
+            document.removeEventListener("visibilitychange", onVisible);
+        };
+    }, [sessionReady, isPreview, pathname]);
 
     useEffect(() => {
         if (!toast) return;
@@ -366,8 +445,7 @@ export default function Page() {
             return setFormError("교회명을 2~60자로 입력해 주세요.");
         if (signupPassword.length < 12 || signupPassword.length > 128)
             return setFormError("비밀번호를 12~128자로 입력해 주세요.");
-        if (signupPassword !== signupConfirmation)
-            return setFormError("비밀번호 확인이 일치하지 않아요.");
+        if (signupPassword !== signupConfirmation) return setFormError("비밀번호 확인이 일치하지 않아요.");
         if (!consent) return setFormError("가입 검토를 위한 정보 제공에 동의해 주세요.");
         setFormError("");
         setDuplicatePhone(false);
@@ -389,13 +467,20 @@ export default function Page() {
 
     async function submitLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (!/^01[016789]\d{7,8}$/.test(loginPhone.replace(/\D/g, ""))) return setFormError("전화번호 형식을 확인해 주세요.");
+        if (!/^01[016789]\d{7,8}$/.test(loginPhone.replace(/\D/g, "")))
+            return setFormError("전화번호 형식을 확인해 주세요.");
         if (!loginPassword) return setFormError("비밀번호를 입력해 주세요.");
         setFormError("");
         try {
             const profile = await loginMember(loginPhone.replace(/\D/g, ""), loginPassword);
             setLoginPassword("");
-            router.replace(profile.mustChangePassword ? "/change-password" : profile.status === "approved" ? "/community/home" : "/pending");
+            router.replace(
+                profile.mustChangePassword
+                    ? "/change-password"
+                    : profile.status === "approved"
+                      ? "/community/home"
+                      : "/pending",
+            );
         } catch (error) {
             setFormError(error instanceof Error ? error.message : "로그인하지 못했어요. 다시 시도해 주세요.");
         }
@@ -403,7 +488,8 @@ export default function Page() {
 
     async function submitSetupPassword(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (setupPassword.length < 12 || setupPassword.length > 128) return setSetupError("비밀번호를 12~128자로 입력해 주세요.");
+        if (setupPassword.length < 12 || setupPassword.length > 128)
+            return setSetupError("비밀번호를 12~128자로 입력해 주세요.");
         if (setupPassword !== setupConfirmation) return setSetupError("비밀번호 확인이 일치하지 않아요.");
         try {
             await setMemberPassword(setupPassword);
@@ -420,7 +506,8 @@ export default function Page() {
     async function submitChangePassword(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!currentPassword) return setFormError("현재 비밀번호를 입력해 주세요.");
-        if (newPassword.length < 12 || newPassword.length > 128) return setFormError("새 비밀번호를 12~128자로 입력해 주세요.");
+        if (newPassword.length < 12 || newPassword.length > 128)
+            return setFormError("새 비밀번호를 12~128자로 입력해 주세요.");
         if (newPassword === currentPassword) return setFormError("현재 비밀번호와 다른 비밀번호를 입력해 주세요.");
         if (newPassword !== newPasswordConfirmation) return setFormError("새 비밀번호 확인이 일치하지 않아요.");
         setFormError("");
@@ -445,6 +532,35 @@ export default function Page() {
             router.replace("/start");
         } catch {
             notify("로그아웃하지 못했어요. 다시 시도해 주세요.");
+        }
+    }
+
+    async function selectAvatar(event: ChangeEvent<HTMLInputElement>) {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (!file) return;
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+            notify("JPG, PNG, WebP 사진을 선택해 주세요.");
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            notify("사진 크기는 10MB 이하여야 해요.");
+            return;
+        }
+        setAvatarBusy(true);
+        try {
+            await uploadAvatar(file);
+        } finally {
+            setAvatarBusy(false);
+        }
+    }
+
+    async function deleteAvatar() {
+        setAvatarBusy(true);
+        try {
+            await removeAvatar();
+        } finally {
+            setAvatarBusy(false);
         }
     }
 
@@ -486,13 +602,26 @@ export default function Page() {
 
     async function confirmDelete() {
         if (isPreview || !postAction) return;
-        const ok = postAction.kind === "photo" ? await removePhoto(postAction.id)
-            : postAction.kind === "prayer" ? await removePrayer(postAction.id) : await removeWord(postAction.id);
+        const ok =
+            postAction.kind === "photo"
+                ? await removePhoto(postAction.id)
+                : postAction.kind === "prayer"
+                  ? await removePrayer(postAction.id)
+                  : await removeWord(postAction.id);
         if (ok) {
             if (postAction.kind === "word") setWordListRevision((current) => current + 1);
             setPostAction(null);
         }
     }
+
+    if (
+        !sessionReady ||
+        (mustChangePassword && route !== "change-password") ||
+        (membershipStatus !== "none" && ["start", "login", "signup"].includes(route)) ||
+        (route === "pending" && membershipStatus === "approved") ||
+        (route === "change-password" && membershipStatus === "none")
+    )
+        return <SplashScreen />;
 
     if (route === "start")
         return (
@@ -528,8 +657,19 @@ export default function Page() {
                         >
                             가입 요청하기 <Icon name="arrow" />
                         </Button>
-                        <Button kind="outline" onClick={() => { setFormError(""); setRoute("login"); }}>이미 가입했다면 로그인</Button>
-                        <Button kind="quiet" onClick={() => router.push("/community/home")}>승인 전에 앱 둘러보기</Button>
+                        <Button
+                            kind="outline"
+                            onClick={() => {
+                                setFormError("");
+                                setRoute("login");
+                            }}
+                        >
+                            이미 가입했다면 로그인
+                        </Button>
+                        <Button kind="quiet" onClick={() => router.push("/community/home")}>
+                            승인 전에 앱 둘러보기
+                        </Button>
+                        <InstallAppButton />
                         <p>가입 후 운영자의 승인이 필요해요.</p>
                     </div>
                 </section>
@@ -575,7 +715,11 @@ export default function Page() {
                                 autoComplete="tel"
                                 maxLength={13}
                                 value={phone}
-                                onChange={(e) => { setPhone(formatPhone(e.target.value)); setDuplicatePhone(false); setFormError(""); }}
+                                onChange={(e) => {
+                                    setPhone(formatPhone(e.target.value));
+                                    setDuplicatePhone(false);
+                                    setFormError("");
+                                }}
                                 placeholder="010-0000-0000"
                             />
                         </label>
@@ -615,22 +759,35 @@ export default function Page() {
                         </label>
                         <label className="consent">
                             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-                            <span>
-                                가입 심사를 위해 이름·전화번호·교회명을 운영자에게 전달하는 데 동의합니다.
-                            </span>
+                            <span>가입 심사를 위해 이름·전화번호·교회명을 운영자에게 전달하는 데 동의합니다.</span>
                         </label>
-                        <p className="privacy-note">
-                            전화번호는 가입 요청 확인에 사용하며 교회 서버에 저장됩니다.
-                        </p>
+                        <p className="privacy-note">전화번호는 가입 요청 확인에 사용하며 교회 서버에 저장됩니다.</p>
                         {formError && (
                             <p className="form-error" role="alert">
                                 {formError}
                             </p>
                         )}
-                        <Button type="submit" disabled={!name.trim() || !phone.trim() || !church.trim() || !signupPassword || !signupConfirmation || !consent}>
+                        <Button
+                            type="submit"
+                            disabled={
+                                !name.trim() ||
+                                !phone.trim() ||
+                                !church.trim() ||
+                                !signupPassword ||
+                                !signupConfirmation ||
+                                !consent
+                            }
+                        >
                             가입 요청 보내기 <Icon name="arrow" />
                         </Button>
-                        <Button kind={duplicatePhone ? "outline" : "quiet"} onClick={() => { setFormError(""); setDuplicatePhone(false); setRoute("login"); }}>
+                        <Button
+                            kind={duplicatePhone ? "outline" : "quiet"}
+                            onClick={() => {
+                                setFormError("");
+                                setDuplicatePhone(false);
+                                setRoute("login");
+                            }}
+                        >
                             {duplicatePhone ? "로그인하기" : "이미 가입했나요? 로그인"}
                         </Button>
                     </form>
@@ -647,24 +804,55 @@ export default function Page() {
                 <div className="auth-content">
                     <div className="eyebrow">다시 만나는 사이</div>
                     <h1>로그인</h1>
-                    <p className="auth-lede">가입할 때 입력한 전화번호와 비밀번호로<br />다시 들어올 수 있어요.</p>
+                    <p className="auth-lede">
+                        가입할 때 입력한 전화번호와 비밀번호로
+                        <br />
+                        다시 들어올 수 있어요.
+                    </p>
                     <form onSubmit={submitLogin} noValidate>
                         <label className="field">
                             <span>전화번호</span>
-                            <input type="tel" inputMode="tel" autoComplete="tel" maxLength={13}
-                                value={loginPhone} onChange={(e) => setLoginPhone(formatPhone(e.target.value))}
-                                placeholder="010-0000-0000" />
+                            <input
+                                type="tel"
+                                inputMode="tel"
+                                autoComplete="tel"
+                                maxLength={13}
+                                value={loginPhone}
+                                onChange={(e) => setLoginPhone(formatPhone(e.target.value))}
+                                placeholder="010-0000-0000"
+                            />
                         </label>
                         <label className="field">
                             <span>비밀번호</span>
-                            <input type="password" autoComplete="current-password" value={loginPassword}
-                                onChange={(e) => setLoginPassword(e.target.value)} placeholder="비밀번호를 입력해 주세요" />
+                            <input
+                                type="password"
+                                autoComplete="current-password"
+                                value={loginPassword}
+                                onChange={(e) => setLoginPassword(e.target.value)}
+                                placeholder="비밀번호를 입력해 주세요"
+                            />
                         </label>
-                        {formError && <p className="form-error" role="alert">{formError}</p>}
-                        <Button type="submit" disabled={!loginPhone || !loginPassword}>로그인 <Icon name="arrow" /></Button>
-                        <Button kind="quiet" onClick={() => { setFormError(""); setRoute("signup"); }}>처음 오셨나요? 가입 요청하기</Button>
+                        {formError && (
+                            <p className="form-error" role="alert">
+                                {formError}
+                            </p>
+                        )}
+                        <Button type="submit" disabled={!loginPhone || !loginPassword}>
+                            로그인 <Icon name="arrow" />
+                        </Button>
+                        <Button
+                            kind="quiet"
+                            onClick={() => {
+                                setFormError("");
+                                setRoute("signup");
+                            }}
+                        >
+                            처음 오셨나요? 가입 요청하기
+                        </Button>
                     </form>
-                    <p className="privacy-note">기존 회원인데 비밀번호를 설정하지 못했거나 잊었다면 운영자에게 문의해 주세요.</p>
+                    <p className="privacy-note">
+                        기존 회원인데 비밀번호를 설정하지 못했거나 잊었다면 운영자에게 문의해 주세요.
+                    </p>
                 </div>
             </main>
         );
@@ -680,31 +868,71 @@ export default function Page() {
                     ) : (
                         <>
                             <p className="auth-lede">
-                                {mustChangePassword ? "운영자가 발급한 임시 비밀번호를 새 비밀번호로 바꿔 주세요." : "현재 비밀번호를 확인한 뒤 새 비밀번호를 설정해 주세요."}
+                                {mustChangePassword
+                                    ? "운영자가 발급한 임시 비밀번호를 새 비밀번호로 바꿔 주세요."
+                                    : "현재 비밀번호를 확인한 뒤 새 비밀번호를 설정해 주세요."}
                             </p>
                             <form onSubmit={submitChangePassword} noValidate>
                                 <label className="field">
                                     <span>현재 비밀번호{mustChangePassword ? " (임시 비밀번호)" : ""}</span>
-                                    <input type="password" autoComplete="current-password" value={currentPassword}
-                                        onChange={(e) => setCurrentPassword(e.target.value)} placeholder="현재 비밀번호를 입력해 주세요" />
+                                    <input
+                                        type="password"
+                                        autoComplete="current-password"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        placeholder="현재 비밀번호를 입력해 주세요"
+                                    />
                                 </label>
                                 <label className="field">
                                     <span>새 비밀번호</span>
-                                    <input type="password" autoComplete="new-password" minLength={12} maxLength={128}
-                                        value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="12자 이상 입력해 주세요" />
+                                    <input
+                                        type="password"
+                                        autoComplete="new-password"
+                                        minLength={12}
+                                        maxLength={128}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="12자 이상 입력해 주세요"
+                                    />
                                 </label>
                                 <label className="field">
                                     <span>새 비밀번호 확인</span>
-                                    <input type="password" autoComplete="new-password" maxLength={128}
-                                        value={newPasswordConfirmation} onChange={(e) => setNewPasswordConfirmation(e.target.value)} placeholder="한 번 더 입력해 주세요" />
+                                    <input
+                                        type="password"
+                                        autoComplete="new-password"
+                                        maxLength={128}
+                                        value={newPasswordConfirmation}
+                                        onChange={(e) => setNewPasswordConfirmation(e.target.value)}
+                                        placeholder="한 번 더 입력해 주세요"
+                                    />
                                 </label>
-                                {formError && <p className="form-error" role="alert">{formError}</p>}
-                                <Button type="submit" disabled={changeBusy || !currentPassword || !newPassword || !newPasswordConfirmation}>
+                                {formError && (
+                                    <p className="form-error" role="alert">
+                                        {formError}
+                                    </p>
+                                )}
+                                <Button
+                                    type="submit"
+                                    disabled={
+                                        changeBusy || !currentPassword || !newPassword || !newPasswordConfirmation
+                                    }
+                                >
                                     {changeBusy ? "변경 중..." : "비밀번호 변경하기"} <Icon name="arrow" />
                                 </Button>
-                                {mustChangePassword
-                                    ? <Button kind="quiet" onClick={() => { void logout(); }}>로그아웃</Button>
-                                    : <Button kind="quiet" onClick={() => router.push("/community/me")}>내 공간으로 돌아가기</Button>}
+                                {mustChangePassword ? (
+                                    <Button
+                                        kind="quiet"
+                                        onClick={() => {
+                                            void logout();
+                                        }}
+                                    >
+                                        로그아웃
+                                    </Button>
+                                ) : (
+                                    <Button kind="quiet" onClick={() => router.push("/community/me")}>
+                                        내 공간으로 돌아가기
+                                    </Button>
+                                )}
                             </form>
                         </>
                     )}
@@ -723,31 +951,80 @@ export default function Page() {
                         <span className="status-icon__dot" />
                         <span className="status-icon__ring" />
                     </div>
-                    <div className="eyebrow">{membershipStatus === "pending" ? "가입 요청 저장 완료" : "가입 상태"}</div>
-                    <h1>{membershipStatus === "pending" ? <>승인을<br />기다리고 있어요</>
-                        : membershipStatus === "rejected" ? <>가입 요청이<br />반려되었어요</>
-                        : membershipStatus === "suspended" ? <>이용이<br />제한되었어요</>
-                        : <>가입 요청을<br />찾을 수 없어요</>}</h1>
+                    <div className="eyebrow">
+                        {membershipStatus === "pending" ? "가입 요청 저장 완료" : "가입 상태"}
+                    </div>
+                    <h1>
+                        {membershipStatus === "pending" ? (
+                            <>
+                                승인을
+                                <br />
+                                기다리고 있어요
+                            </>
+                        ) : membershipStatus === "rejected" ? (
+                            <>
+                                가입 요청이
+                                <br />
+                                반려되었어요
+                            </>
+                        ) : membershipStatus === "suspended" ? (
+                            <>
+                                이용이
+                                <br />
+                                제한되었어요
+                            </>
+                        ) : (
+                            <>
+                                가입 요청을
+                                <br />
+                                찾을 수 없어요
+                            </>
+                        )}
+                    </h1>
                     {membershipStatus === "pending" ? (
                         <>
-                            <p>{name}님, {church} 가입 요청을 운영자에게 전달했어요.</p>
-                            <p className="privacy-note">운영자가 요청을 확인하고 승인하면 공동체 기능을 이용할 수 있어요.</p>
-                            <Button kind="outline" onClick={() => router.push("/community/home")}>승인 전 앱 둘러보기</Button>
-                            <Button onClick={() => { void syncSession().then((status) => { if (status === "approved") router.push("/community/home"); else notify("아직 가입 승인 전이에요."); }); }}>
+                            <p>
+                                {name}님, {church} 가입 요청을 운영자에게 전달했어요.
+                            </p>
+                            <p className="privacy-note">
+                                운영자가 요청을 확인하고 승인하면 공동체 기능을 이용할 수 있어요.
+                            </p>
+                            <Button kind="outline" onClick={() => router.push("/community/home")}>
+                                승인 전 앱 둘러보기
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    void syncSession().then((status) => {
+                                        if (status === "approved") router.push("/community/home");
+                                        else notify("아직 가입 승인 전이에요.");
+                                    });
+                                }}
+                            >
                                 승인 상태 다시 확인 <Icon name="arrow" />
                             </Button>
                         </>
                     ) : membershipStatus === "rejected" || membershipStatus === "suspended" ? (
                         <>
                             <p>계정 상태를 확인하려면 교회 운영자에게 문의해 주세요.</p>
-                            <Button kind="outline" onClick={() => router.push("/community/home")}>앱 둘러보기</Button>
-                            <Button kind="quiet" onClick={() => { void logout(); }}>로그아웃</Button>
+                            <Button kind="outline" onClick={() => router.push("/community/home")}>
+                                앱 둘러보기
+                            </Button>
+                            <Button
+                                kind="quiet"
+                                onClick={() => {
+                                    void logout();
+                                }}
+                            >
+                                로그아웃
+                            </Button>
                         </>
                     ) : (
                         <>
                             <p>가입한 적이 있다면 다시 로그인해 주세요. 처음이라면 가입 요청을 작성할 수 있어요.</p>
                             <Button onClick={() => setRoute("login")}>로그인</Button>
-                            <Button kind="outline" onClick={() => setRoute("signup")}>가입 요청하기</Button>
+                            <Button kind="outline" onClick={() => setRoute("signup")}>
+                                가입 요청하기
+                            </Button>
                         </>
                     )}
                 </div>
@@ -756,79 +1033,217 @@ export default function Page() {
 
     return (
         <div className="app-shell">
-            {apiError && <div className="preview-note" role="alert">{apiError}</div>}
+            {apiError && (
+                <div className="preview-note" role="alert">
+                    {apiError}
+                </div>
+            )}
             <header className="app-header">
-                <Link
-                    className="brand"
-                    href="/community/home"
-                    onClick={() => setStoredArea("home")}
-                >
+                <Link className="brand" href="/community/home" onClick={() => setStoredArea("home")}>
                     <Mark small />
                     <span>사이</span>
                 </Link>
                 <div className="header-meta">
                     <span className="header-church">{church || "우리 교회 청년부"}</span>
+                    {!isPreview && (
+                        <Link
+                            href="/community/inbox"
+                            className="header-inbox"
+                            aria-label={`내 소식함${inboxUnreadCount > 0 ? `, 읽지 않은 소식 ${inboxUnreadCount}개` : ""}`}
+                            onClick={() => setStoredArea("inbox")}
+                        >
+                            <Icon name="bell" />
+                            {inboxUnreadCount > 0 && (
+                                <span aria-hidden="true">{inboxUnreadCount > 99 ? "99+" : inboxUnreadCount}</span>
+                            )}
+                        </Link>
+                    )}
                     <button className="avatar" aria-label="내 공간" onClick={() => setArea("me")}>
-                        {name.trim().slice(0, 1) || "사"}
+                        {avatarUrl ? <img src={avatarUrl} alt="" /> : name.trim().slice(0, 1) || "사"}
                     </button>
                 </div>
             </header>
             {isPreview && (
                 <aside className="preview-banner" aria-label="미리보기 안내">
-                    <p><strong>미리 둘러보는 중</strong><span> 가입 승인 후 나눔과 기도에 참여할 수 있어요.</span></p>
+                    <p>
+                        <strong>미리 둘러보는 중</strong>
+                        <span> 가입 승인 후 나눔과 기도에 참여할 수 있어요.</span>
+                    </p>
                     <Link href={membershipStatus === "none" ? "/login" : "/pending"}>
                         {membershipStatus === "none" ? "로그인" : "가입 상태"} <Icon name="arrow" />
                     </Link>
                 </aside>
             )}
             <main className="app-content">
-                {area === "home" && <Home name={name} setArea={(next) => { if (next === "word" && todayDate) setSelectedDate(todayDate); setArea(next); }} photos={photos} prayers={prayers} notices={notices} todayDate={todayDate} todayWord={todayWord} todayWordStatus={todayWordStatus} />}
+                {area === "inbox" &&
+                    (isPreview ? (
+                        <section className="section-page">
+                            <div className="eyebrow">나에게 도착한 이야기</div>
+                            <h1>내 소식함</h1>
+                            <p>가입 승인 후 내 소식을 볼 수 있어요.</p>
+                        </section>
+                    ) : (
+                        <InboxPage onUnreadChange={setInboxUnreadCount} />
+                    ))}
+                {area === "home" && (
+                    <Home
+                        name={name}
+                        approved={!isPreview}
+                        setArea={(next) => {
+                            if (next === "word" && todayDate) setSelectedDate(todayDate);
+                            setArea(next);
+                        }}
+                        photos={photos}
+                        prayers={prayers}
+                        notices={notices}
+                        todayDate={todayDate}
+                        todayWord={todayWord}
+                        todayWordStatus={todayWordStatus}
+                    />
+                )}
                 {area === "word" && (
                     <section className="section-page">
                         <div className="eyebrow">오늘의 말씀</div>
                         <h1>말씀 나눔</h1>
                         <div className="word-date-nav" aria-label="말씀 날짜 선택">
-                            <button type="button" onClick={() => setSelectedDate(shiftDate(selectedDate, -1))} disabled={!selectedDate} aria-label="전날 보기">‹</button>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedDate(shiftDate(selectedDate, -1))}
+                                disabled={!selectedDate}
+                                aria-label="전날 보기"
+                            >
+                                ‹
+                            </button>
                             <WordDatePicker value={selectedDate} maxDate={todayDate} onChange={setSelectedDate} />
-                            <button type="button" onClick={() => setSelectedDate(shiftDate(selectedDate, 1))} disabled={!selectedDate || selectedDate >= todayDate} aria-label="다음 날 보기">›</button>
-                            {selectedDate && selectedDate !== todayDate && <button type="button" className="word-date-today" onClick={() => setSelectedDate(todayDate)}>오늘</button>}
+                            <button
+                                type="button"
+                                onClick={() => setSelectedDate(shiftDate(selectedDate, 1))}
+                                disabled={!selectedDate || selectedDate >= todayDate}
+                                aria-label="다음 날 보기"
+                            >
+                                ›
+                            </button>
+                            {selectedDate && selectedDate !== todayDate && (
+                                <button
+                                    type="button"
+                                    className="word-date-today"
+                                    onClick={() => setSelectedDate(todayDate)}
+                                >
+                                    오늘
+                                </button>
+                            )}
                         </div>
                         {selectedDate && <p className="word-date-label">{displayDate(selectedDate)}의 말씀과 질문</p>}
-                        {selectedWordStatus === "loading" && <p className="word-data-state" role="status">말씀을 불러오는 중이에요.</p>}
-                        {selectedWordStatus === "missing" && <div className="word-data-state">이 날짜에 등록된 말씀과 질문이 없어요.<button type="button" onClick={() => setDailyWordRevision((current) => current + 1)}>다시 확인</button></div>}
-                        {selectedWordStatus === "error" && <div className="word-data-state" role="alert">말씀을 불러오지 못했어요.<button type="button" onClick={() => setDailyWordRevision((current) => current + 1)}>다시 시도</button></div>}
-                        {selectedWordStatus === "ready" && selectedWord && <>
-                        <article className="verse-card">
-                            <span className="card-kicker">{selectedDate === todayDate ? "오늘 함께 읽어요" : displayDate(selectedDate)}</span>
-                            <h2>{selectedWord.verse}</h2>
-                            <p>{selectedWord.reference} · 본문은 공식 제공처에서 읽어 주세요.</p>
-                            {selectedWord.readingUrl && <a className="inline-link" href={selectedWord.readingUrl} target="_blank" rel="noopener noreferrer">대한성서공회에서 본문 읽기 <Icon name="arrow" /></a>}
-                        </article>
-                        <div className="section-heading">
-                            <h2>{selectedDate === todayDate ? "오늘의 질문" : "이날의 질문"}</h2>
-                            <span>가볍게 한 줄이면 충분해요</span>
-                        </div>
-                        <p className="question-card">{selectedWord.question}</p>
-                        {isPreview ? (
-                            <Button kind="outline" onClick={() => requireApproval()}>말씀 나눔 작성</Button>
-                        ) : (
+                        {selectedWordStatus === "loading" && (
+                            <p className="word-data-state" role="status">
+                                말씀을 불러오는 중이에요.
+                            </p>
+                        )}
+                        {selectedWordStatus === "missing" && (
+                            <div className="word-data-state">
+                                이 날짜에 등록된 말씀과 질문이 없어요.
+                                <button type="button" onClick={() => setDailyWordRevision((current) => current + 1)}>
+                                    다시 확인
+                                </button>
+                            </div>
+                        )}
+                        {selectedWordStatus === "error" && (
+                            <div className="word-data-state" role="alert">
+                                말씀을 불러오지 못했어요.
+                                <button type="button" onClick={() => setDailyWordRevision((current) => current + 1)}>
+                                    다시 시도
+                                </button>
+                            </div>
+                        )}
+                        {selectedWordStatus === "ready" && selectedWord && (
                             <>
-                                <label className="field">
-                                    <span>나눔 적기</span>
-                                    <textarea maxLength={500} rows={4} value={wordDraft} onChange={(e) => setWordDraft(e.target.value)} placeholder="떠오르는 만큼만 나눠 주세요." />
-                                </label>
-                                <div className="character-count">{wordDraft.length} / 500</div>
-                                <Button disabled={!wordDraft.trim()} onClick={() => { void addWord(wordDraft.trim(), name || "나", selectedDate).then((ok) => { if (ok) { setWordDraft(""); setWordListRevision((current) => current + 1); } }); }}>나눔 남기기</Button>
+                                <article className="verse-card">
+                                    <span className="card-kicker">
+                                        {selectedDate === todayDate ? "오늘 함께 읽어요" : displayDate(selectedDate)}
+                                    </span>
+                                    <h2>{selectedWord.verse}</h2>
+                                    {selectedWord.scriptureText && (
+                                        <div className="verse-card__scripture">
+                                            <span>말씀 구절</span>
+                                            <p>{selectedWord.scriptureText}</p>
+                                        </div>
+                                    )}
+                                    <p className="verse-card__reference">
+                                        {selectedWord.reference}
+                                        {selectedWord.scriptureText && selectedWord.scriptureVersion
+                                            ? ` · ${scriptureCredit(selectedWord.scriptureVersion, selectedWord.scriptureAttribution)}`
+                                            : ""}
+                                    </p>
+                                    {selectedWord.readingUrl && (
+                                        <a
+                                            className="inline-link"
+                                            href={selectedWord.readingUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {selectedWord.readingUrl.includes("/NKRV/")
+                                                ? "대한성서공회에서 개역개정 본문 읽기"
+                                                : "대한성서공회에서 본문 읽기"}{" "}
+                                            <Icon name="arrow" />
+                                        </a>
+                                    )}
+                                </article>
+                                <div className="section-heading">
+                                    <h2>{selectedDate === todayDate ? "오늘의 질문" : "이날의 질문"}</h2>
+                                    <span>가볍게 한 줄이면 충분해요</span>
+                                </div>
+                                <p className="question-card">{selectedWord.question}</p>
+                                {isPreview ? (
+                                    <Button kind="outline" onClick={() => requireApproval()}>
+                                        말씀 나눔 작성
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <label className="field">
+                                            <span>나눔 적기</span>
+                                            <textarea
+                                                maxLength={500}
+                                                rows={4}
+                                                value={wordDraft}
+                                                onChange={(e) => setWordDraft(e.target.value)}
+                                                placeholder="떠오르는 만큼만 나눠 주세요."
+                                            />
+                                        </label>
+                                        <div className="character-count">{wordDraft.length} / 500</div>
+                                        <Button
+                                            disabled={!wordDraft.trim()}
+                                            onClick={() => {
+                                                void addWord(wordDraft.trim(), name || "나", selectedDate).then(
+                                                    (ok) => {
+                                                        if (ok) {
+                                                            setWordDraft("");
+                                                            setWordListRevision((current) => current + 1);
+                                                        }
+                                                    },
+                                                );
+                                            }}
+                                        >
+                                            나눔 남기기
+                                        </Button>
+                                    </>
+                                )}
                             </>
                         )}
-                        </>}
                         <h2 className="feed-title">서로의 한 줄</h2>
                         <div className="feed-list">
-                            {datedPostsStatus === "loading" ? <p role="status">나눔을 불러오는 중이에요.</p> : datedPostsStatus === "error" ? <p role="alert">나눔을 불러오지 못했어요. 날짜를 다시 선택해 주세요.</p> : datedWordPosts.length ? (
+                            {datedPostsStatus === "loading" ? (
+                                <p role="status">나눔을 불러오는 중이에요.</p>
+                            ) : datedPostsStatus === "error" ? (
+                                <p role="alert">나눔을 불러오지 못했어요. 날짜를 다시 선택해 주세요.</p>
+                            ) : datedWordPosts.length ? (
                                 datedWordPosts.map((post) => (
                                     <article className="prayer-card" key={post.id}>
                                         <div className="prayer-card__meta">
-                                            <span className="anon-avatar">{post.author.slice(0, 1)}</span>
+                                            <MemberAvatar
+                                                className="anon-avatar"
+                                                name={post.author}
+                                                src={post.mine ? avatarUrl : post.authorAvatarUrl}
+                                            />
                                             <span>
                                                 {post.author} · {post.time}
                                             </span>
@@ -864,21 +1279,39 @@ export default function Page() {
                     <section className="section-page">
                         <div className="section-title-row">
                             <div>
-                                <div className="eyebrow">우리의 평범한 하루 · 13</div>
+                                <div className="eyebrow">우리의 평범한 하루</div>
                                 <h1>일상 사진</h1>
                             </div>
-                            <button className="round-add" aria-label="사진 올리기" onClick={() => requireApproval() && setPhotoOpen(true)}><Icon name="plus" /></button>
+                            <button
+                                className="round-add"
+                                aria-label="사진 올리기"
+                                onClick={() => requireApproval() && setPhotoOpen(true)}
+                            >
+                                <Icon name="plus" />
+                            </button>
                         </div>
                         <p className="auth-lede">오늘의 작은 순간을 함께 나눠요.</p>
                         <div className="photo-grid">
                             {photos.length ? (
                                 photos.map((photo) => (
                                     <article className="photo-card" key={photo.id}>
-                                        <Link className="photo-card__open" href={`/community/photos/${photo.id}`} aria-label={`${photo.caption} 상세 보기`}>
+                                        <Link
+                                            className="photo-card__open"
+                                            href={`/community/photos/${photo.id}`}
+                                            aria-label={`${photo.caption} 상세 보기`}
+                                        >
                                             {photo.imageUrl ? (
-                                                <img className="photo-uploaded" src={photo.imageUrl} alt={photo.caption} />
+                                                <img
+                                                    className="photo-uploaded"
+                                                    src={photo.imageUrl}
+                                                    alt={photo.caption}
+                                                />
                                             ) : (
-                                                <div className={`photo-art photo-art--${photo.tone}`} aria-label="사진 자리 표시" role="img">
+                                                <div
+                                                    className={`photo-art photo-art--${photo.tone}`}
+                                                    aria-label="사진 자리 표시"
+                                                    role="img"
+                                                >
                                                     <span className="photo-art__sun" />
                                                     <span className="photo-art__shape" />
                                                 </div>
@@ -889,7 +1322,9 @@ export default function Page() {
                                                 {photo.time}
                                                 {photo.mine ? " · 나" : ""}
                                             </span>
-                                            <p><Link href={`/community/photos/${photo.id}`}>{photo.caption}</Link></p>
+                                            <p>
+                                                <Link href={`/community/photos/${photo.id}`}>{photo.caption}</Link>
+                                            </p>
                                             <button
                                                 className="more-button"
                                                 aria-label="게시물 메뉴"
@@ -922,7 +1357,7 @@ export default function Page() {
                     <section className="section-page">
                         <div className="section-title-row">
                             <div>
-                                <div className="eyebrow">조용히 마음을 나누는 곳 · 17</div>
+                                <div className="eyebrow">조용히 마음을 나누는 곳</div>
                                 <h1>기도</h1>
                             </div>
                             <button
@@ -943,15 +1378,30 @@ export default function Page() {
                             </p>
                         </div>
                         {isPreview ? (
-                            <Button kind="outline" onClick={() => requireApproval()}>기도 제목 작성</Button>
+                            <Button kind="outline" onClick={() => requireApproval()}>
+                                기도 제목 작성
+                            </Button>
                         ) : prayerPreview ? (
                             <section className="prayer-preview" aria-labelledby="prayer-preview-title">
                                 <div className="eyebrow">익명으로 이렇게 보여요</div>
                                 <h2 id="prayer-preview-title">게시 전 확인</h2>
                                 <p>{prayerDraft}</p>
                                 <div className="prayer-preview__actions">
-                                    <Button kind="outline" onClick={() => setPrayerPreview(false)}>수정하기</Button>
-                                    <Button onClick={() => { void addPrayer(prayerDraft.trim()).then((ok) => { if (ok) { setPrayerDraft(""); setPrayerPreview(false); } }); }}>이 내용으로 나누기</Button>
+                                    <Button kind="outline" onClick={() => setPrayerPreview(false)}>
+                                        수정하기
+                                    </Button>
+                                    <Button
+                                        onClick={() => {
+                                            void addPrayer(prayerDraft.trim()).then((ok) => {
+                                                if (ok) {
+                                                    setPrayerDraft("");
+                                                    setPrayerPreview(false);
+                                                }
+                                            });
+                                        }}
+                                    >
+                                        이 내용으로 나누기
+                                    </Button>
                                 </div>
                             </section>
                         ) : (
@@ -962,7 +1412,9 @@ export default function Page() {
                                     if (prayerDraft.trim()) setPrayerPreview(true);
                                 }}
                             >
-                                <label className="sr-only" htmlFor="prayer-input">기도 제목 작성</label>
+                                <label className="sr-only" htmlFor="prayer-input">
+                                    기도 제목 작성
+                                </label>
                                 <textarea
                                     id="prayer-input"
                                     rows={3}
@@ -1007,7 +1459,9 @@ export default function Page() {
                                         <button
                                             className={`pray-button ${post.prayed ? "is-prayed" : ""}`}
                                             aria-pressed={post.prayed}
-                                            onClick={() => { if (requireApproval()) void togglePrayer(post.id); }}
+                                            onClick={() => {
+                                                if (requireApproval()) void togglePrayer(post.id);
+                                            }}
                                         >
                                             <span>♡</span> 함께 기도했어요 <b>{post.prayers}</b>
                                         </button>
@@ -1024,13 +1478,49 @@ export default function Page() {
                 )}
                 {area === "me" && (
                     <section className="section-page">
-                        <div className="eyebrow">나를 위한 공간 · R07</div>
+                        <div className="eyebrow">나를 위한 공간</div>
                         <h1>내 공간</h1>
                         <div className="profile-card">
-                            <div className="profile-avatar">{name.trim().slice(0, 1) || "사"}</div>
-                            <div>
+                            <div className="profile-avatar">
+                                {avatarUrl ? (
+                                    <img src={avatarUrl} alt="내 프로필 사진" />
+                                ) : (
+                                    name.trim().slice(0, 1) || "사"
+                                )}
+                            </div>
+                            <div className="profile-info">
                                 <strong>{name || "사이 청년"}</strong>
                                 <span>{church || "우리 교회 청년부"}</span>
+                                {!isPreview && (
+                                    <div className="profile-photo-actions">
+                                        <input
+                                            ref={avatarInput}
+                                            className="sr-only"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp"
+                                            aria-label="프로필 사진 선택"
+                                            onChange={selectAvatar}
+                                        />
+                                        <button
+                                            type="button"
+                                            disabled={avatarBusy}
+                                            onClick={() => avatarInput.current?.click()}
+                                        >
+                                            {avatarBusy ? "처리 중…" : avatarUrl ? "사진 변경" : "사진 추가"}
+                                        </button>
+                                        {avatarUrl && (
+                                            <button
+                                                type="button"
+                                                disabled={avatarBusy}
+                                                onClick={() => {
+                                                    void deleteAvatar();
+                                                }}
+                                            >
+                                                사진 삭제
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="section-heading">
@@ -1085,24 +1575,48 @@ export default function Page() {
                                 )}
                         </div>
                         <div className="settings-list">
+                            {!isPreview && (
+                                <button onClick={() => setArea("inbox")}>
+                                    내 소식함 {inboxUnreadCount > 0 ? `${inboxUnreadCount}개 새 소식` : ""}{" "}
+                                    <Icon name="arrow" />
+                                </button>
+                            )}
                             {membershipStatus !== "none" && !hasPassword && (
-                                <button onClick={() => { setSetupError(""); setSetupOpen(true); }}>
+                                <button
+                                    onClick={() => {
+                                        setSetupError("");
+                                        setSetupOpen(true);
+                                    }}
+                                >
                                     로그인 비밀번호 설정 <Icon name="arrow" />
                                 </button>
                             )}
                             {membershipStatus !== "none" && hasPassword && (
-                                <button onClick={() => { setFormError(""); router.push("/change-password"); }}>
+                                <button
+                                    onClick={() => {
+                                        setFormError("");
+                                        router.push("/change-password");
+                                    }}
+                                >
                                     비밀번호 변경 <Icon name="arrow" />
                                 </button>
                             )}
-                            <button onClick={() => requireApproval() && notify("PWA 설치 안내는 브라우저 메뉴를 이용해 주세요.")}>
-                                앱 설치 안내 <Icon name="arrow" />
-                            </button>
-                            <button onClick={() => requireApproval() && notify("알림 설정은 다음 단계에서 연결할게요.")}>
+                            <InstallAppButton compact />
+                            <button
+                                onClick={() => {
+                                    if (requireApproval()) setPushSettingsOpen(true);
+                                }}
+                            >
                                 알림 설정 <Icon name="arrow" />
                             </button>
                             {membershipStatus !== "none" && (
-                                <button onClick={() => { void logout(); }}>로그아웃 <Icon name="arrow" /></button>
+                                <button
+                                    onClick={() => {
+                                        void logout();
+                                    }}
+                                >
+                                    로그아웃 <Icon name="arrow" />
+                                </button>
                             )}
                         </div>
                     </section>
@@ -1127,35 +1641,98 @@ export default function Page() {
                     {toast}
                 </div>
             )}
+            {pushSettingsOpen && <PushSettingsDialog onClose={() => setPushSettingsOpen(false)} />}
             {approvalNoticeOpen && (
-                <div className="modal-backdrop" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) setApprovalNoticeOpen(false); }}>
-                    <section className="modal approval-modal" role="alertdialog" aria-modal="true" aria-labelledby="approval-notice-title">
+                <div
+                    className="modal-backdrop"
+                    role="presentation"
+                    onClick={(event) => {
+                        if (event.target === event.currentTarget) setApprovalNoticeOpen(false);
+                    }}
+                >
+                    <section
+                        className="modal approval-modal"
+                        role="alertdialog"
+                        aria-modal="true"
+                        aria-labelledby="approval-notice-title"
+                    >
                         <div className="eyebrow">사이 공동체 이용 안내</div>
-                        <h2 id="approval-notice-title">{membershipStatus === "none" ? "로그인이 필요해요" : "가입 승인이 필요해요"}</h2>
-                        <p>{membershipStatus === "none" ? "가입한 회원이라면 로그인해 주세요. 처음이라면 가입을 요청할 수 있어요." : "둘러보기에서는 기능을 사용할 수 없어요. 가입 승인이 완료되면 이용할 수 있어요."}</p>
-                        {membershipStatus === "none" && <Button onClick={() => { setApprovalNoticeOpen(false); setRoute("login"); }}>로그인</Button>}
+                        <h2 id="approval-notice-title">
+                            {membershipStatus === "none" ? "로그인이 필요해요" : "가입 승인이 필요해요"}
+                        </h2>
+                        <p>
+                            {membershipStatus === "none"
+                                ? "가입한 회원이라면 로그인해 주세요. 처음이라면 가입을 요청할 수 있어요."
+                                : "둘러보기에서는 기능을 사용할 수 없어요. 가입 승인이 완료되면 이용할 수 있어요."}
+                        </p>
+                        {membershipStatus === "none" && (
+                            <Button
+                                onClick={() => {
+                                    setApprovalNoticeOpen(false);
+                                    setRoute("login");
+                                }}
+                            >
+                                로그인
+                            </Button>
+                        )}
                         <Button onClick={() => setApprovalNoticeOpen(false)}>확인</Button>
                     </section>
                 </div>
             )}
             {setupOpen && (
                 <div className="modal-backdrop" role="presentation">
-                    <section className="modal approval-modal" role="dialog" aria-modal="true" aria-labelledby="setup-password-title">
+                    <section
+                        className="modal approval-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="setup-password-title"
+                    >
                         <div className="eyebrow">기존 회원 로그인 준비</div>
                         <h2 id="setup-password-title">비밀번호 설정</h2>
                         <p>비밀번호를 설정하면 세션이 만료되어도 전화번호로 다시 로그인할 수 있어요.</p>
                         <form onSubmit={submitSetupPassword} noValidate>
-                            <label className="field"><span>새 비밀번호</span>
-                                <input type="password" autoComplete="new-password" minLength={12} maxLength={128}
-                                    value={setupPassword} onChange={(e) => setSetupPassword(e.target.value)} placeholder="12자 이상 입력해 주세요" />
+                            <label className="field">
+                                <span>새 비밀번호</span>
+                                <input
+                                    type="password"
+                                    autoComplete="new-password"
+                                    minLength={12}
+                                    maxLength={128}
+                                    value={setupPassword}
+                                    onChange={(e) => setSetupPassword(e.target.value)}
+                                    placeholder="12자 이상 입력해 주세요"
+                                />
                             </label>
-                            <label className="field"><span>비밀번호 확인</span>
-                                <input type="password" autoComplete="new-password" maxLength={128}
-                                    value={setupConfirmation} onChange={(e) => setSetupConfirmation(e.target.value)} placeholder="한 번 더 입력해 주세요" />
+                            <label className="field">
+                                <span>비밀번호 확인</span>
+                                <input
+                                    type="password"
+                                    autoComplete="new-password"
+                                    maxLength={128}
+                                    value={setupConfirmation}
+                                    onChange={(e) => setSetupConfirmation(e.target.value)}
+                                    placeholder="한 번 더 입력해 주세요"
+                                />
                             </label>
-                            {setupError && <p className="form-error" role="alert">{setupError}</p>}
-                            <Button type="submit" disabled={!setupPassword || !setupConfirmation}>비밀번호 저장</Button>
-                            <Button kind="quiet" onClick={() => { setSetupOpen(false); setSetupPassword(""); setSetupConfirmation(""); setSetupError(""); }}>취소</Button>
+                            {setupError && (
+                                <p className="form-error" role="alert">
+                                    {setupError}
+                                </p>
+                            )}
+                            <Button type="submit" disabled={!setupPassword || !setupConfirmation}>
+                                비밀번호 저장
+                            </Button>
+                            <Button
+                                kind="quiet"
+                                onClick={() => {
+                                    setSetupOpen(false);
+                                    setSetupPassword("");
+                                    setSetupConfirmation("");
+                                    setSetupError("");
+                                }}
+                            >
+                                취소
+                            </Button>
                         </form>
                     </section>
                 </div>
@@ -1227,7 +1804,12 @@ export default function Page() {
                             />
                             <span>위치·차량번호 등 노출 정보를 확인했어요.</span>
                         </label>
-                        <Button disabled={!photoImage || !photoPeopleConsent || !photoLocationConsent} onClick={() => { void finishPhoto(); }}>
+                        <Button
+                            disabled={!photoImage || !photoPeopleConsent || !photoLocationConsent}
+                            onClick={() => {
+                                void finishPhoto();
+                            }}
+                        >
                             사진 나누기
                         </Button>
                     </section>
@@ -1242,6 +1824,7 @@ export default function Page() {
                             setPostAction(null);
                             setActionView("menu");
                             setReportReason("");
+                            setReportOther("");
                         }
                     }}
                 >
@@ -1257,6 +1840,7 @@ export default function Page() {
                                 setPostAction(null);
                                 setActionView("menu");
                                 setReportReason("");
+                                setReportOther("");
                             }}
                             aria-label="닫기"
                         >
@@ -1291,7 +1875,7 @@ export default function Page() {
                                 <p>신고 이유를 선택해 주세요.</p>
                                 <label className="field">
                                     <span>신고 이유</span>
-                                    <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
+                                    <select value={reportReason} onChange={(e) => { setReportReason(e.target.value); setReportOther(""); }}>
                                         <option value="">이유를 선택해 주세요</option>
                                         <option>동의 없는 사진 또는 개인정보</option>
                                         <option>상처를 주거나 괴롭히는 내용</option>
@@ -1299,13 +1883,28 @@ export default function Page() {
                                         <option>기타</option>
                                     </select>
                                 </label>
-                                <Button disabled={!reportReason} onClick={() => {
-                                    if (!postAction || !reportReason) return;
-                                    if (isPreview) return;
-                                    void reportPost(postAction.kind, postAction.id, reportReason).then((ok) => {
-                                        if (ok) { setPostAction(null); setActionView("menu"); setReportReason(""); }
-                                    });
-                                }}>
+                                {reportReason === "기타" && (
+                                    <label className="field">
+                                        <span>신고 내용</span>
+                                        <textarea value={reportOther} onChange={(e) => setReportOther(e.target.value)} maxLength={496} placeholder="신고 내용을 구체적으로 적어 주세요" rows={3} required />
+                                    </label>
+                                )}
+                                <Button
+                                    disabled={!reportReason || (reportReason === "기타" && !reportOther.trim())}
+                                    onClick={() => {
+                                        if (!postAction || !reportReason || (reportReason === "기타" && !reportOther.trim())) return;
+                                        if (isPreview) return;
+                                        const reason = reportReason === "기타" ? `기타: ${reportOther.trim()}` : reportReason;
+                                        void reportPost(postAction.kind, postAction.id, reason).then((ok) => {
+                                            if (ok) {
+                                                setPostAction(null);
+                                                setActionView("menu");
+                                                setReportReason("");
+                                                setReportOther("");
+                                            }
+                                        });
+                                    }}
+                                >
                                     신고하기
                                 </Button>
                             </>
@@ -1317,7 +1916,13 @@ export default function Page() {
                                     <Button kind="outline" onClick={() => setActionView("menu")}>
                                         취소
                                     </Button>
-                                    <Button onClick={() => { void confirmDelete(); }}>삭제하기</Button>
+                                    <Button
+                                        onClick={() => {
+                                            void confirmDelete();
+                                        }}
+                                    >
+                                        삭제하기
+                                    </Button>
                                 </div>
                             </>
                         )}
@@ -1330,6 +1935,7 @@ export default function Page() {
 
 function Home({
     name,
+    approved,
     setArea,
     photos,
     prayers,
@@ -1339,6 +1945,7 @@ function Home({
     todayWordStatus,
 }: {
     name: string;
+    approved: boolean;
     setArea: (area: Area) => void;
     photos: ReturnType<typeof useChurchStore.getState>["photos"];
     prayers: ReturnType<typeof useChurchStore.getState>["prayers"];
@@ -1349,6 +1956,15 @@ function Home({
 }) {
     const photo = photos[0];
     const prayer = prayers[0];
+    const [latestNews, setLatestNews] = useState<NewsItem | null>(null);
+    useEffect(() => {
+        if (!approved) return;
+        const controller = new AbortController();
+        void api<NewsItem[]>("/news", { signal: controller.signal })
+            .then((items) => setLatestNews(items[0] ?? null))
+            .catch(() => {});
+        return () => controller.abort();
+    }, [approved]);
     return (
         <section className="home-page">
             <div className="home-greeting">
@@ -1361,25 +1977,79 @@ function Home({
                     </h1>
                 </div>
                 <div className="greeting-mark">
-                    <Mark small />
+                    <Mark />
                 </div>
             </div>
             <button className="week-card" onClick={() => setArea("word")}>
                 <div className="week-card__top">
-                    <span>오늘의 말씀</span>
+                    <span>
+                        {todayWordStatus === "ready" && todayWord && !todayWord.scriptureText
+                            ? "오늘의 묵상"
+                            : "오늘의 말씀"}
+                    </span>
                     <span>
                         {todayDate || "오늘"} <Icon name="arrow" />
                     </span>
                 </div>
-                <h2>{todayWordStatus === "loading" ? "말씀을 불러오는 중이에요" : todayWordStatus === "ready" && todayWord ? todayWord.verse : todayWordStatus === "missing" ? "오늘 등록된 말씀이 없어요" : "말씀을 불러오지 못했어요"}</h2>
-                <p>{todayWordStatus === "ready" && todayWord ? `${todayWord.reference} · 오늘의 질문도 함께 있어요` : todayWordStatus === "missing" ? "운영자가 말씀을 등록하면 이곳에 보여요" : todayWordStatus === "error" ? "말씀 화면에서 다시 확인해 주세요" : "잠시만 기다려 주세요"}</p>
+                <h2>
+                    {todayWordStatus === "loading"
+                        ? "말씀을 불러오는 중이에요"
+                        : todayWordStatus === "ready" && todayWord
+                          ? todayWord.verse
+                          : todayWordStatus === "missing"
+                            ? "오늘 등록된 말씀이 없어요"
+                            : "말씀을 불러오지 못했어요"}
+                </h2>
+                {todayWordStatus === "ready" && todayWord?.scriptureText && (
+                    <div className="week-card__scripture">
+                        <span>말씀 구절</span>
+                        <p>{todayWord.scriptureText}</p>
+                    </div>
+                )}
+                <p>
+                    {todayWordStatus === "ready" && todayWord
+                        ? `${todayWord.reference}${todayWord.scriptureText && todayWord.scriptureVersion ? ` · ${scriptureCredit(todayWord.scriptureVersion, todayWord.scriptureAttribution)}` : ""}`
+                        : todayWordStatus === "missing"
+                          ? "운영자가 말씀을 등록하면 이곳에 보여요"
+                          : todayWordStatus === "error"
+                            ? "말씀 화면에서 다시 확인해 주세요"
+                            : "잠시만 기다려 주세요"}
+                </p>
                 <span className="week-card__circle">“</span>
             </button>
-            {notices.length > 0 && <section className="home-notice" aria-labelledby="home-notice-title">
-                <span>공지사항</span>
-                <h2 id="home-notice-title">{notices[0].title}</h2>
-                <p>{notices[0].body}</p>
-            </section>}
+            {notices.length > 0 && (
+                <section className="home-notice" aria-labelledby="home-notice-title">
+                    <span>공지사항</span>
+                    <h2 id="home-notice-title">{notices[0].title}</h2>
+                    <p>{notices[0].body}</p>
+                    <Link className="home-notice-link" href={`/community/notices/${notices[0].id}`}>공지 자세히 보기 <Icon name="arrow" /></Link>
+                </section>
+            )}
+            <div className="home-section-heading">
+                <div>
+                    <div className="eyebrow">CHURCH NEWS</div>
+                    <h2>교회 소식</h2>
+                </div>
+                <Link href="/community/news">
+                    전체 보기 <Icon name="arrow" />
+                </Link>
+            </div>
+            <Link className="home-news-card" href={latestNews ? `/community/news/${latestNews.id}` : "/community/news"}>
+                <small>
+                    {latestNews
+                        ? `${newsCategoryLabels[latestNews.category]} · ${newsDate(latestNews.publishedAt)}`
+                        : "우리 공동체의 새로운 이야기"}
+                </small>
+                <strong>
+                    {latestNews
+                        ? latestNews.title
+                        : approved
+                          ? "교회 소식을 확인해 보세요"
+                          : "가입 승인 후 교회 소식을 볼 수 있어요"}
+                </strong>
+                {latestNews && <span>{latestNews.excerpt}</span>}
+                <Icon name="arrow" />
+            </Link>
             <div className="home-section-heading">
                 <div>
                     <div className="eyebrow">LIFE TOGETHER</div>

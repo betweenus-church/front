@@ -6,6 +6,7 @@ import shell from "../members/page.module.scss";
 import styles from "./page.module.scss";
 import { api, json } from "../../../lib/api";
 import { useAdminCounts } from "../use-admin-counts";
+import AdminNewsIcon from "../../../components/AdminNewsIcon";
 
 type Step = "A01" | "A02" | "A03" | "A04" | "A05" | "A06" | "A07" | "A08" | "A09" | "A10";
 type Status = "pending" | "approved" | "rejected";
@@ -29,6 +30,20 @@ const filters: { id: Filter; label: string }[] = [
     { id: "all", label: "전체" },
 ];
 const modalSteps: Step[] = ["A03", "A04", "A05", "A07"];
+const requestDateFormat = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+});
+
+function formatRequestDate(value: string) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : requestDateFormat.format(date);
+}
 
 function Icon({ name }: { name: "grid" | "clipboard" | "warning" | "users" | "settings" }) {
     const paths = {
@@ -194,6 +209,10 @@ export default function AdminApprovalsPage() {
                         <Icon name="users" />
                         구성원 관리
                     </Link>
+                    <Link href="/admin/news">
+                        <AdminNewsIcon />
+                        교회 소식
+                    </Link>
                     <Link href="/admin/settings">
                         <Icon name="settings" />
                         운영 설정
@@ -331,7 +350,7 @@ export default function AdminApprovalsPage() {
                                                         </button>
                                                     </td>
                                                     <td>{item.church}</td>
-                                                    <td>{item.requestedAt}</td>
+                                                    <td>{formatRequestDate(item.requestedAt)}</td>
                                                     <td>
                                                         {item.status === "pending"
                                                             ? "대기"
@@ -418,7 +437,7 @@ export default function AdminApprovalsPage() {
                                             </div>
                                             <div>
                                                 <dt>신청 일시</dt>
-                                                <dd>{selected.requestedAt}</dd>
+                                                <dd>{formatRequestDate(selected.requestedAt)}</dd>
                                             </div>
                                             {selected.reason && (
                                                 <div>

@@ -129,8 +129,18 @@ svg {
 .mark--small {
     width: 34px;
     height: 30px;
-    transform: scale(0.78);
-    transform-origin: left center;
+}
+.mark--small i {
+    top: 6px;
+    width: 22px;
+    height: 17px;
+    border-width: 2px;
+}
+.mark--small i:first-child {
+    left: 0;
+}
+.mark--small i:last-child {
+    left: 12px;
 }
 .brand {
     display: flex;
@@ -442,6 +452,9 @@ textarea::placeholder {
 .status-card .privacy-note {
     margin: 18px 0 24px;
 }
+.status-card > .button + .button {
+    margin-top: 5px;
+}
 
 .app-shell {
     min-height: 100svh;
@@ -511,6 +524,34 @@ textarea::placeholder {
     align-items: center;
     gap: 10px;
 }
+.header-inbox {
+    position: relative;
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--green-dark);
+    text-decoration: none;
+}
+.header-inbox:hover { background: var(--green-pale); }
+.header-inbox svg { width: 21px; height: 21px; }
+.header-inbox span {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 3px;
+    border-radius: 9px;
+    color: var(--green-dark);
+    background: var(--gold);
+    text-align: center;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 17px;
+}
 .header-church {
     max-width: 155px;
     overflow: hidden;
@@ -532,7 +573,18 @@ textarea::placeholder {
     font-weight: 700;
 }
 .avatar {
+    flex: 0 0 36px;
+    padding: 0;
+    overflow: hidden;
     cursor: pointer;
+}
+.avatar img,
+.profile-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
 }
 .app-content {
     width: min(100%, 620px);
@@ -557,9 +609,6 @@ textarea::placeholder {
     margin-top: 4px;
     border-radius: 50%;
     background: #edf0e8;
-}
-.greeting-mark .mark {
-    transform: scale(0.95);
 }
 .week-card {
     position: relative;
@@ -601,10 +650,7 @@ textarea::placeholder {
     font-weight: 500;
     line-height: 1.45;
     letter-spacing: -0.02em;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    overflow: hidden;
+    white-space: pre-wrap;
 }
 .week-card p {
     position: relative;
@@ -612,6 +658,25 @@ textarea::placeholder {
     margin: 0;
     color: rgba(255, 255, 255, 0.73);
     font-size: 11px;
+}
+.week-card .week-card__scripture {
+    position: relative;
+    z-index: 1;
+    margin: 16px 0 10px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+.week-card__scripture span {
+    display: block;
+    margin-bottom: 5px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11px;
+}
+.week-card .week-card__scripture p {
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
 }
 .week-card__circle {
     position: absolute;
@@ -763,6 +828,16 @@ textarea::placeholder {
 .home-notice > span { color: var(--green); font-size: 12px; font-weight: 700; }
 .home-notice h2 { margin: 9px 0; font-size: 17px; }
 .home-notice p { margin: 0; white-space: pre-wrap; line-height: 1.6; }
+.home-notice-link { display: inline-flex; align-items: center; gap: 4px; margin-top: 14px; color: var(--green); font-size: 13px; font-weight: 700; text-decoration: none; }
+.home-notice-link svg { width: 15px; height: 15px; }
+.home-section-heading a { display: inline-flex; align-items: center; gap: 4px; padding: 8px 0; color: var(--green); font-size: 12px; font-weight: 600; text-decoration: none; }
+.home-section-heading a svg { width: 15px; height: 15px; }
+.home-news-card { position: relative; display: grid; gap: 5px; padding: 19px 45px 19px 18px; border: 1px solid #e6e6df; border-radius: 17px; color: var(--ink); background: #fff; text-decoration: none; }
+.home-news-card:hover { border-color: #b4cbb9; }
+.home-news-card small { color: var(--green); font-size: 11px; font-weight: 700; }
+.home-news-card strong { font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; }
+.home-news-card span { display: -webkit-box; overflow: hidden; color: var(--muted); font-size: 12px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.home-news-card > svg { position: absolute; top: 50%; right: 17px; width: 17px; height: 17px; color: #91a293; transform: translateY(-50%); }
 .home-quote .mark {
     opacity: 0.8;
 }
@@ -998,10 +1073,33 @@ textarea::placeholder {
     font-size: 26px;
     font-weight: 500;
     line-height: 1.55;
+    white-space: pre-wrap;
 }
 .verse-card p {
     color: rgba(255, 255, 255, 0.72);
     font-size: 12px;
+}
+.verse-card .verse-card__reference {
+    margin: 0;
+    font-weight: 700;
+}
+.verse-card .verse-card__scripture {
+    margin: 16px 0 10px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+.verse-card__scripture span {
+    display: block;
+    margin-bottom: 6px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11px;
+}
+.verse-card .verse-card__scripture p {
+    margin: 0;
+    color: #fff;
+    font-size: 15px;
+    line-height: 1.7;
+    white-space: pre-wrap;
 }
 .verse-card .inline-link {
     color: #f1dfbd;
@@ -1218,6 +1316,13 @@ textarea::placeholder {
     color: var(--green);
     background: #edf1e9;
     font-size: 16px;
+    overflow: hidden;
+}
+.anon-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 .prayer-card__meta .more-button {
     margin-left: auto;
@@ -1267,9 +1372,10 @@ textarea::placeholder {
     width: 48px;
     height: 48px;
 }
-.profile-card > div:nth-child(2) {
+.profile-info {
     display: grid;
     gap: 3px;
+    min-width: 0;
 }
 .profile-card strong {
     font-size: 14px;
@@ -1278,6 +1384,23 @@ textarea::placeholder {
     color: #929991;
     font-size: 11px;
 }
+.profile-photo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 9px;
+}
+.profile-photo-actions button {
+    min-height: 32px;
+    padding: 5px 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--green-dark);
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+}
+.profile-photo-actions button:disabled { opacity: .5; cursor: wait; }
 .settings-list {
     overflow: hidden;
     border: 1px solid var(--line);

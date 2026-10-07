@@ -2,19 +2,19 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { api, ApiError, json } from "../lib/api";
 
-export type Area = "home" | "word" | "photos" | "prayer" | "me";
+export type Area = "home" | "word" | "photos" | "prayer" | "me" | "inbox";
 export type MembershipStatus = "none" | "pending" | "approved" | "rejected" | "suspended";
 export type PrayerPost = { id: number; text: string; time: string; prayers: number; prayed: boolean; mine?: boolean };
-export type PhotoComment = { id: number; author: string; text: string; time: string; mine: boolean; edited?: boolean };
-export type PhotoPost = { id: number; caption: string; time: string; tone: string; mine?: boolean; imageUrl?: string; author?: string; likes?: number; liked?: boolean; comments?: PhotoComment[] };
-export type WordPost = { id: number; author: string; text: string; time: string; date?: string; mine?: boolean };
+export type PhotoComment = { id: number; author: string; authorAvatarUrl?: string | null; text: string; time: string; mine: boolean; edited?: boolean };
+export type PhotoPost = { id: number; caption: string; time: string; tone: string; mine?: boolean; imageUrl?: string; author?: string; authorAvatarUrl?: string | null; likes?: number; liked?: boolean; comments?: PhotoComment[] };
+export type WordPost = { id: number; author: string; authorAvatarUrl?: string | null; text: string; time: string; date?: string; mine?: boolean };
 export type Notice = { id: number; title: string; body: string; pinned: number; createdAt: string };
 export type PostReport = { id: number; kind: "photo" | "prayer" | "word"; postId: number; reason: string; time: string };
 type Snapshot = { photos: PhotoPost[]; prayers: PrayerPost[]; wordPosts: WordPost[]; notices: Notice[] };
-type Profile = { id: number; name: string; church: string; status: MembershipStatus; reason?: string; hasPassword: boolean; mustChangePassword: boolean };
+type Profile = { id: number; name: string; church: string; status: MembershipStatus; reason?: string; hasPassword: boolean; mustChangePassword: boolean; avatarUrl: string | null };
 
 type ChurchState = {
-  area: Area; name: string; church: string; membershipStatus: MembershipStatus; hasPassword: boolean; mustChangePassword: boolean;
+  area: Area; name: string; church: string; avatarUrl: string | null; membershipStatus: MembershipStatus; hasPassword: boolean; mustChangePassword: boolean;
   sessionReady: boolean; apiError: string; prayerDraft: string;
   prayers: PrayerPost[]; photos: PhotoPost[]; wordPosts: WordPost[]; notices: Notice[]; reports: PostReport[]; toast: string;
   setArea: (area: Area) => void; setName: (name: string) => void; setChurch: (church: string) => void;
@@ -24,6 +24,7 @@ type ChurchState = {
   setMemberPassword: (password: string) => Promise<void>;
   changeMemberPassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logoutMember: () => Promise<void>;
+  uploadAvatar: (file: File) => Promise<boolean>; removeAvatar: () => Promise<boolean>;
   loadCommunity: () => Promise<void>;
   addPrayer: (text: string) => Promise<boolean>; togglePrayer: (id: number) => Promise<boolean>;
   addPhoto: (caption: string, imageUrl: string, author: string) => Promise<boolean>;
@@ -67,7 +68,7 @@ export const useChurchStore = create<ChurchState>()(
         }
       }
       return {
-        area: "home", name: "", church: "", membershipStatus: "none", hasPassword: false, mustChangePassword: false, sessionReady: false, apiError: "",
+        area: "home", name: "", church: "", avatarUrl: null, membershipStatus: "none", hasPassword: false, mustChangePassword: false, sessionReady: false, apiError: "",
         prayerDraft: "", toast: "", prayers: [], photos: [], wordPosts: [], notices: [], reports: [],
         setArea: (area) => set({ area }), setName: (name) => set({ name }), setChurch: (church) => set({ church }),
         setMembershipStatus: (membershipStatus) => set({ membershipStatus }), setPrayerDraft: (prayerDraft) => set({ prayerDraft }),
@@ -76,7 +77,7 @@ export const useChurchStore = create<ChurchState>()(
           try {
             const profile = await api<Profile>("/auth/me");
             if (revision !== authRevision) return get().membershipStatus;
-            set({ name: profile.name, church: profile.church, membershipStatus: profile.status, hasPassword: profile.hasPassword, mustChangePassword: profile.mustChangePassword, sessionReady: true, apiError: "" });
+            set({ name: profile.name, church: profile.church, avatarUrl: profile.avatarUrl, membershipStatus: profile.status, hasPassword: profile.hasPassword, mustChangePassword: profile.mustChangePassword, sessionReady: true, apiError: "" });
             if (profile.status === "approved" && !profile.mustChangePassword) {
               try { await refresh(); }
               catch (error) {
@@ -88,7 +89,7 @@ export const useChurchStore = create<ChurchState>()(
           } catch (error) {
             if (revision !== authRevision) return get().membershipStatus;
             if (error instanceof ApiError && error.status === 401) {
-              set({ name: "", church: "", membershipStatus: "none", hasPassword: false, mustChangePassword: false, sessionReady: true, photos: [], prayers: [], wordPosts: [], notices: [], apiError: "" });
+              set({ name: "", church: "", avatarUrl: null, membershipStatus: "none", hasPassword: false, mustChangePassword: false, sessionReady: true, photos: [], prayers: [], wordPosts: [], notices: [], apiError: "" });
               return "none";
             }
             set({ sessionReady: true, apiError: errorMessage(error), photos: [], prayers: [], wordPosts: [], notices: [] });
@@ -99,12 +100,12 @@ export const useChurchStore = create<ChurchState>()(
           const { name, church } = get();
           const profile = await api<Profile>("/auth/signup", json("POST", { name, phone, church, password, consent: true }));
           authRevision++;
-          set({ membershipStatus: profile.status, name: profile.name, church: profile.church, hasPassword: profile.hasPassword, mustChangePassword: profile.mustChangePassword, sessionReady: true });
+          set({ membershipStatus: profile.status, name: profile.name, church: profile.church, avatarUrl: profile.avatarUrl, hasPassword: profile.hasPassword, mustChangePassword: profile.mustChangePassword, sessionReady: true });
         },
         loginMember: async (phone, password) => {
           const profile = await api<Profile>("/auth/login", json("POST", { phone, password }));
           authRevision++;
-          set({ name: profile.name, church: profile.church, membershipStatus: profile.status, hasPassword: profile.hasPassword, mustChangePassword: profile.mustChangePassword, sessionReady: true, apiError: "" });
+          set({ name: profile.name, church: profile.church, avatarUrl: profile.avatarUrl, membershipStatus: profile.status, hasPassword: profile.hasPassword, mustChangePassword: profile.mustChangePassword, sessionReady: true, apiError: "" });
           let mustChangePassword = profile.mustChangePassword;
           if (profile.status === "approved" && !mustChangePassword) {
             try { await refresh(); }
@@ -129,7 +130,23 @@ export const useChurchStore = create<ChurchState>()(
         logoutMember: async () => {
           await api("/auth/logout", json("POST"));
           authRevision++;
-          set({ name: "", church: "", membershipStatus: "none", hasPassword: false, mustChangePassword: false, photos: [], prayers: [], wordPosts: [], notices: [], sessionReady: true });
+          set({ name: "", church: "", avatarUrl: null, membershipStatus: "none", hasPassword: false, mustChangePassword: false, photos: [], prayers: [], wordPosts: [], notices: [], sessionReady: true });
+        },
+        uploadAvatar: async (file) => {
+          try {
+            const form = new FormData();
+            form.append("image", file);
+            const profile = await api<Profile>("/auth/me/avatar", { method: "POST", body: form });
+            set({ avatarUrl: profile.avatarUrl, toast: "프로필 사진을 변경했어요." });
+            return true;
+          } catch (error) { set({ toast: errorMessage(error) }); return false; }
+        },
+        removeAvatar: async () => {
+          try {
+            const profile = await api<Profile>("/auth/me/avatar", { method: "DELETE" });
+            set({ avatarUrl: profile.avatarUrl, toast: "프로필 사진을 삭제했어요." });
+            return true;
+          } catch (error) { set({ toast: errorMessage(error) }); return false; }
         },
         loadCommunity: refresh,
         addPrayer: (text) => change("/prayers", json("POST", { text }), "기도 제목을 나눴어요."),
