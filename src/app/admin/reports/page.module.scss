@@ -35,6 +35,20 @@
     color: #394d40;
     font-size: 14px;
 }
+.reportImage {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    max-height: 360px;
+    margin-top: 14px;
+    border-radius: 8px;
+    object-fit: contain;
+}
+.imageUnavailable {
+    margin: 14px 0 0;
+    color: #87968a;
+    font-size: 13px;
+}
 .excerpt p {
     margin: 11px 0;
     color: #65756a;
@@ -83,7 +97,7 @@
     font-size: 14px;
     font-weight: 700;
 }
-.outcomeField input {
+.outcomeField textarea {
     width: 100%;
     min-height: 44px;
     padding: 0 14px;
@@ -94,8 +108,9 @@
     font: inherit;
     font-size: 14px;
     font-weight: 400;
+    resize: vertical;
 }
-.outcomeField input[aria-invalid="true"] {
+.outcomeField textarea[aria-invalid="true"] {
     border-color: #bd655d;
 }
 .resultActions {

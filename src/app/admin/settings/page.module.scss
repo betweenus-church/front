@@ -55,6 +55,16 @@
     font-size: 14px;
     line-height: 1.6;
 }
+.manualPush { margin-top: 34px; padding-top: 30px; border-top: 1px solid #e5ece7; }
+.manualPush h3 { margin: 0 0 6px; color: #293f31; font-size: 18px; }
+.manualPush > p:first-of-type { margin: 0 0 20px; color: #78867b; font-size: 14px; line-height: 1.6; }
+.manualHint { margin: 0 0 10px; color: #78867b; font-size: 13px; line-height: 1.5; }
+.manualPush > button { margin-top: 12px; }
+.manualConfirm { margin-top: 18px; padding: 18px; border: 1px solid #c7dfcf; border-radius: 12px; background: #f4f9f4; }
+.manualConfirm > strong { color: #315d42; font-size: 14px; }
+.manualConfirm p { margin: 10px 0 17px; color: #34493b; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.manualConfirm p b { line-height: 1.8; }
+.manualConfirm > div { display: flex; flex-wrap: wrap; gap: 8px; }
 .sectionTop {
     display: flex;
     justify-content: space-between;
@@ -99,6 +109,7 @@
     font-weight: 700;
 }
 .field input,
+.field select,
 .field textarea {
     width: 100%;
     padding: 13px 14px;
@@ -112,9 +123,15 @@
     font-weight: 400;
 }
 .field input:focus,
+.field select:focus,
 .field textarea:focus {
     border-color: #4b8663;
     box-shadow: 0 0 0 3px #e9f4eb;
+}
+.field input[type="checkbox"] {
+    width: auto;
+    margin: 0 7px 0 0;
+    accent-color: #326b51;
 }
 .field [aria-invalid="true"] {
     border-color: #c36c64;

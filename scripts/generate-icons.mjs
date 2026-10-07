@@ -22,7 +22,7 @@ function chunk(type, data) {
   return Buffer.concat([size, name, data, checksum]);
 }
 
-function png(size, maskable = false) {
+function png(size, maskable = false, badge = false) {
   const scale = 3;
   const rows = Buffer.alloc((size * 4 + 1) * size);
   for (let y = 0; y < size; y++) {
@@ -34,8 +34,8 @@ function png(size, maskable = false) {
       for (let sy = 0; sy < scale; sy++) for (let sx = 0; sx < scale; sx++) {
         const px = (x + (sx + .5) / scale) / size;
         const py = (y + (sy + .5) / scale) / size;
-        const nx = px * 512;
-        const ny = py * 512;
+        const nx = badge ? (px - .5) * 320 + 256 : px * 512;
+        const ny = badge ? (py - .5) * 320 + 256 : py * 512;
         const outside = !maskable && (nx < 0 || ny < 0 || nx >= 512 || ny >= 512 || (() => {
           const cx = Math.max(112, Math.min(400, nx));
           const cy = Math.max(112, Math.min(400, ny));
@@ -51,18 +51,18 @@ function png(size, maskable = false) {
           const ly = -dx * Math.sin(a) + dy * Math.cos(a);
           const centerlineX = Math.max(-21, Math.min(21, lx));
           const distance = Math.hypot(lx - centerlineX, ly);
-          return Math.abs(distance - 68) <= 16;
+          return Math.abs(distance - 68) <= (badge ? 12 : 16);
         };
         if (inRing(200) || inRing(312)) goldSamples++;
       }
       const offset = row + 1 + x * 4;
       const alpha = alphaSamples / (scale * scale);
       const goldBlend = goldSamples / (scale * scale);
-      const color = goldBlend > 0 ? gold : green;
+      const color = badge ? [255, 255, 255] : goldBlend > 0 ? gold : green;
       rows[offset] = color[0];
       rows[offset + 1] = color[1];
       rows[offset + 2] = color[2];
-      rows[offset + 3] = Math.round(alpha * 255);
+      rows[offset + 3] = Math.round((badge ? goldBlend : alpha) * 255);
     }
   }
   const header = Buffer.alloc(13);
@@ -79,6 +79,7 @@ await Promise.all([
   writeFile("public/icons/icon-192.png", png(192)),
   writeFile("public/icons/icon-512.png", png(512)),
   writeFile("public/icons/maskable-512.png", png(512, true)),
+  writeFile("public/icons/notification-badge-96.png", png(96, false, true)),
   writeFile("src/app/apple-icon.png", png(180)),
 ]);
-console.log("Generated 192px, 512px, maskable and Apple touch icons.");
+console.log("Generated 192px, 512px, maskable, notification badge and Apple touch icons.");

@@ -1,0 +1,3 @@
+module.exports=[27572,a=>{"use strict";var b=a.i(56738);a.s(["default",0,function({children:a}){return(0,b.jsx)("html",{lang:"ko",children:(0,b.jsx)("body",{children:a})})},"metadata",0,{title:"사이 · 청년부 공동체",description:"말씀과 일상을 나누는 우리 공간",applicationName:"사이",appleWebApp:{capable:!0,title:"사이",statusBarStyle:"default"},formatDetection:{telephone:!1}},"viewport",0,{themeColor:"#386b56",width:"device-width",initialScale:1}])},50645,function(a){a.n(a.i(27572))}];
+
+//# sourceMappingURL=src_app_layout_tsx_0r5yz5t._.js.map

@@ -5,6 +5,7 @@ import { api } from "../../../lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.scss";
+import AdminNewsIcon from "../../../components/AdminNewsIcon";
 
 type IconName = "grid" | "clipboard" | "warning" | "users" | "settings" | "arrow";
 const iconPaths: Record<IconName, React.ReactNode> = {
@@ -69,6 +70,7 @@ const menu: { label: string; icon: IconName }[] = [
     { label: "가입 승인", icon: "clipboard" },
     { label: "신고 검토", icon: "warning" },
     { label: "구성원 관리", icon: "users" },
+    { label: "교회 소식", icon: "clipboard" },
     { label: "운영 설정", icon: "settings" },
 ];
 
@@ -82,6 +84,7 @@ export default function AdminDashboardPage() {
         if (name === "가입 승인") router.push("/admin/approvals");
         else if (name === "신고 검토") router.push("/admin/reports");
         else if (name === "구성원 관리") router.push("/admin/people");
+        else if (name === "교회 소식") router.push("/admin/news");
         else if (name === "운영 설정") router.push("/admin/settings");
         else setNotice(`${name} 화면은 이후 작업에서 연결됩니다.`);
     };
@@ -110,7 +113,7 @@ export default function AdminDashboardPage() {
                             </Link>
                         ) : (
                             <button key={item.label} type="button" onClick={() => openSection(item.label)}>
-                                <Icon name={item.icon} />
+                                {item.label === "교회 소식" ? <AdminNewsIcon /> : <Icon name={item.icon} />}
                                 {item.label}
                                 {(item.label === "가입 승인" || item.label === "신고 검토") && (
                                     <span className={item.label === "신고 검토" ? styles.redBadge : styles.yellowBadge}>
