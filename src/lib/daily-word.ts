@@ -2,10 +2,18 @@ export type DailyWord = {
     date: string;
     reference: string;
     verse: string;
+    scriptureText: string | null;
+    scriptureVersion: string | null;
+    scriptureAttribution: string | null;
     question: string;
     readingUrl: string | null;
     source?: "plan" | "custom";
 };
+
+export function scriptureCredit(version: string | null, attribution: string | null): string {
+    if (version === "개역한글판") return `개역한글판 · © ${attribution || "대한성서공회"} 1961`;
+    return [version, attribution].filter(Boolean).join(" · ");
+}
 
 export function churchToday(): string {
     const parts = new Intl.DateTimeFormat("en-US", {

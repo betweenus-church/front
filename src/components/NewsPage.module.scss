@@ -1,0 +1,40 @@
+.shell { min-height: 100svh; padding-bottom: calc(78px + env(safe-area-inset-bottom)); background: #f8f7f2; color: #242b27; }
+.header { position: sticky; top: 0; z-index: 5; display: flex; height: 64px; align-items: center; justify-content: space-between; padding: 0 22px; border-bottom: 1px solid #e6e6df; background: #f8f7f2ef; backdrop-filter: blur(14px); }
+.brand { display: inline-flex; align-items: center; gap: 7px; color: #264e3e; font-size: 20px; font-weight: 700; letter-spacing: .08em; text-decoration: none; }
+.mark { position: relative; display: inline-block; width: 34px; height: 30px; flex: 0 0 auto; transform: scale(.78); transform-origin: left center; }
+.mark i { position: absolute; top: 8px; width: 29px; height: 22px; border: 3px solid #e2bd73; border-radius: 999px; transform: rotate(-38deg); }
+.mark i:first-child { left: 1px; } .mark i:last-child { left: 16px; }
+.identity { display: flex; align-items: center; gap: 10px; }
+.identity span { max-width: 155px; overflow: hidden; color: #8a908a; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.identity a { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: #264e3e; background: #e4eae0; font-weight: 700; text-decoration: none; }
+.main { width: min(100%, 620px); margin: 0 auto; padding: 26px 22px 48px; }
+.back { display: inline-flex; align-items: center; gap: 7px; color: #386b56; font-size: 14px; text-decoration: none; }
+.back:first-letter { font-size: 24px; }
+.eyebrow { margin: 28px 0 5px; color: #386b56; font-size: 11px; font-weight: 700; letter-spacing: .12em; }
+.main h1 { margin: 0 0 24px; color: #264e3e; font-size: 29px; line-height: 1.3; }
+.filters { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 18px; padding-bottom: 3px; }
+.filters button { min-width: 58px; padding: 8px 15px; border: 1px solid #dde5da; border-radius: 99px; color: #66756a; background: #fff; cursor: pointer; white-space: nowrap; }
+.filters .selected { border-color: #386b56; color: #fff; background: #386b56; font-weight: 700; }
+.list { display: grid; gap: 12px; }
+.card { display: flex; min-width: 0; align-items: center; gap: 14px; padding: 16px; border: 1px solid #e5e8df; border-radius: 17px; background: #fff; color: inherit; text-decoration: none; }
+.card:hover { border-color: #a9c4b4; }
+.thumb { width: 72px; height: 72px; flex: 0 0 auto; border-radius: 10px; object-fit: cover; }
+.cardBody { display: grid; min-width: 0; flex: 1; gap: 4px; }
+.meta { color: #688472; font-size: 12px; font-weight: 700; }
+.cardBody strong { overflow: hidden; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.excerpt { display: -webkit-box; overflow: hidden; color: #7a827c; font-size: 13px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.arrow { color: #9aa99a; font-size: 24px; }
+.detail { padding: 23px 20px; border: 1px solid #e5e8df; border-radius: 20px; background: #fff; }
+.detail h2 { margin: 9px 0 20px; color: #264e3e; font-size: 25px; line-height: 1.35; overflow-wrap: anywhere; }
+.cover { display: block; width: 100%; max-height: 380px; border-radius: 14px; object-fit: cover; }
+.body { margin: 26px 0 36px; font-size: 15px; line-height: 1.8; overflow-wrap: anywhere; white-space: pre-wrap; }
+.listLink { display: block; padding: 12px 16px; border: 1px solid #386b56; border-radius: 10px; color: #386b56; font-weight: 700; text-align: center; text-decoration: none; }
+.message { display: grid; justify-items: center; gap: 10px; margin: 30px 0; padding: 55px 20px; border: 1px solid #e5e8df; border-radius: 20px; background: #fff; color: #6e7c70; text-align: center; }
+.message strong { color: #264e3e; font-size: 17px; }
+.message p { margin: 0; font-size: 13px; }
+.message a, .message button { margin-top: 12px; padding: 9px 15px; border: 1px solid #386b56; border-radius: 9px; color: #386b56; background: #fff; font-weight: 700; text-decoration: none; cursor: pointer; }
+.nav { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: flex; min-height: calc(70px + env(safe-area-inset-bottom)); justify-content: center; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid #e8e8e1; background: #fffffcf5; }
+.nav a { display: grid; width: min(20%, 120px); min-height: 50px; justify-items: center; align-content: center; gap: 3px; border-radius: 12px; color: #919890; font-size: 10px; text-decoration: none; }
+.nav svg { width: 21px; height: 21px; }
+.nav a:hover { color: #386b56; background: #eaf0e8; }
+@media (max-width: 375px) { .identity span { max-width: 105px; } .card { padding: 13px; } .thumb { width: 60px; height: 60px; } }

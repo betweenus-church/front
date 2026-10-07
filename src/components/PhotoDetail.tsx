@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useChurchStore } from "../store/useChurchStore";
 import styles from "./PhotoDetail.module.scss";
+import MemberAvatar from "./MemberAvatar";
 
 function BackIcon() {
     return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>;
@@ -29,10 +30,11 @@ export default function PhotoDetail() {
     const [noticeOpen, setNoticeOpen] = useState(false);
     const [menu, setMenu] = useState<"closed" | "actions" | "report" | "delete">("closed");
     const [reportReason, setReportReason] = useState("");
+    const [reportOther, setReportOther] = useState("");
     const [commentAction, setCommentAction] = useState<{ id: number; mode: "actions" | "delete" } | null>(null);
     const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
     const [editDraft, setEditDraft] = useState("");
-    const { photos, name, membershipStatus, mustChangePassword, apiError, syncSession, togglePhotoLike, addPhotoComment, updatePhotoComment, removePhotoComment, removePhoto, reportPost } = useChurchStore();
+    const { photos, name, avatarUrl, membershipStatus, mustChangePassword, apiError, syncSession, togglePhotoLike, addPhotoComment, updatePhotoComment, removePhotoComment, removePhoto, reportPost } = useChurchStore();
     const photo = photos.find((item) => String(item.id) === id);
     const isPreview = membershipStatus !== "approved" || mustChangePassword;
 
@@ -84,7 +86,8 @@ export default function PhotoDetail() {
                             </div>
                         )}
                         <div className={styles.author}>
-                            <span className={styles.avatar}>{(photo.author || (photo.mine ? name : "청년") || "나").slice(0, 1)}</span>
+                            <MemberAvatar className={styles.avatar} name={photo.author || (photo.mine ? name : "청년") || "나"}
+                                src={photo.mine ? avatarUrl : photo.authorAvatarUrl} />
                             <div><strong>{photo.author || (photo.mine ? name || "나" : "청년")}</strong><small>{photo.time}</small></div>
                         </div>
                         <p className={styles.caption}>{photo.caption}</p>
@@ -98,7 +101,8 @@ export default function PhotoDetail() {
                             <h2 id="photo-comments-title">댓글</h2>
                             {photo.comments?.length ? photo.comments.map((item) => (
                                 <article className={styles.comment} key={item.id}>
-                                    <span className={styles.avatar}>{item.author.slice(0, 1)}</span>
+                                    <MemberAvatar className={styles.avatar} name={item.author}
+                                        src={item.mine ? avatarUrl : item.authorAvatarUrl} />
                                     <div className={styles.commentBody}>
                                         <div className={styles.commentMeta}><strong>{item.author}</strong><time>{item.time}{item.edited ? " · 수정됨" : ""}</time></div>
                                         {editingCommentId === item.id ? (
@@ -115,7 +119,7 @@ export default function PhotoDetail() {
                     </main>
                     <form className={styles.composer} onSubmit={(event) => { void submitComment(event); }}>
                         <div className={styles.composerInner}>
-                            <span className={styles.avatar}>{(name.trim() || "나").slice(0, 1)}</span>
+                            <MemberAvatar className={styles.avatar} name={name.trim() || "나"} src={avatarUrl} />
                             <input aria-label="댓글" maxLength={200} placeholder="댓글을 남겨 보세요" value={comment} readOnly={isPreview} onChange={(event) => setComment(event.target.value)} onFocus={() => { if (isPreview) setNoticeOpen(true); }} />
                             <button type="submit" aria-label="댓글 보내기" disabled={!comment.trim() && !isPreview}><SendIcon /></button>
                         </div>
@@ -132,12 +136,12 @@ export default function PhotoDetail() {
                 {commentAction.mode === "actions" ? <><p>내가 남긴 댓글을 수정하거나 삭제할 수 있어요.</p><button type="button" onClick={() => { const selected = photo?.comments?.find((item) => item.id === commentAction.id && item.mine); if (selected) { setEditingCommentId(selected.id); setEditDraft(selected.text); } setCommentAction(null); }}>댓글 수정</button><button className={styles.secondary} type="button" onClick={() => setCommentAction({ ...commentAction, mode: "delete" })}>댓글 삭제</button></> : <><p>이 댓글을 삭제할까요?</p><button type="button" onClick={() => { if (photo) void removePhotoComment(photo.id, commentAction.id).then((ok) => { if (ok) setCommentAction(null); }); }}>삭제하기</button></>}
                 <button className={styles.secondary} type="button" onClick={() => setCommentAction(null)}>취소</button>
             </section></div>}
-            {menu !== "closed" && <div className={styles.backdrop} onClick={() => setMenu("closed")}><section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="photo-action-title" onClick={(event) => event.stopPropagation()}>
+            {menu !== "closed" && <div className={styles.backdrop} onClick={() => { setMenu("closed"); setReportReason(""); setReportOther(""); }}><section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="photo-action-title" onClick={(event) => event.stopPropagation()}>
                 <h2 id="photo-action-title">게시물 관리</h2>
                 {menu === "actions" && <><p>{photo?.mine ? "내가 나눈 사진을 관리해요." : "이 사진에 도움이 필요한가요?"}</p><button type="button" onClick={() => setMenu(photo?.mine ? "delete" : "report")}>{photo?.mine ? "내 사진 삭제하기" : "운영자에게 신고하기"}</button></>}
                 {menu === "delete" && <><p>이 사진을 삭제할까요?</p><button type="button" onClick={() => { if (photo) void removePhoto(photo.id).then((ok) => { if (ok) { setMenu("closed"); goBack(); } }); }}>삭제하기</button></>}
-                {menu === "report" && <><p>신고 이유를 선택해 주세요.</p><select aria-label="신고 이유" value={reportReason} onChange={(event) => setReportReason(event.target.value)}><option value="">이유 선택</option><option>동의 없는 사진 또는 개인정보</option><option>상처를 주거나 괴롭히는 내용</option><option>위험하거나 부적절한 내용</option><option>기타</option></select><button type="button" disabled={!reportReason} onClick={() => { if (photo && reportReason) void reportPost("photo", photo.id, reportReason).then((ok) => { if (ok) { setMenu("closed"); setReportReason(""); } }); }}>신고하기</button></>}
-                <button className={styles.secondary} type="button" onClick={() => { setMenu("closed"); setReportReason(""); }}>닫기</button>
+                {menu === "report" && <><p>신고 이유를 선택해 주세요.</p><select aria-label="신고 이유" value={reportReason} onChange={(event) => { setReportReason(event.target.value); setReportOther(""); }}><option value="">이유 선택</option><option>동의 없는 사진 또는 개인정보</option><option>상처를 주거나 괴롭히는 내용</option><option>위험하거나 부적절한 내용</option><option>기타</option></select>{reportReason === "기타" && <label className={styles.reportOther}>신고 내용<textarea value={reportOther} onChange={(event) => setReportOther(event.target.value)} maxLength={496} placeholder="신고 내용을 구체적으로 적어 주세요" rows={3} required /></label>}<button type="button" disabled={!reportReason || (reportReason === "기타" && !reportOther.trim())} onClick={() => { if (photo && reportReason && (reportReason !== "기타" || reportOther.trim())) { const reason = reportReason === "기타" ? `기타: ${reportOther.trim()}` : reportReason; void reportPost("photo", photo.id, reason).then((ok) => { if (ok) { setMenu("closed"); setReportReason(""); setReportOther(""); } }); } }}>신고하기</button></>}
+                <button className={styles.secondary} type="button" onClick={() => { setMenu("closed"); setReportReason(""); setReportOther(""); }}>닫기</button>
             </section></div>}
         </div>
     );

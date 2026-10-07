@@ -1,21 +1,33 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import SplashScreen from "../components/SplashScreen";
+import { useChurchStore } from "../store/useChurchStore";
 
 export default function SplashPage() {
     const router = useRouter();
-    useEffect(() => {
-        const timeout = window.setTimeout(() => router.replace("/start"), 450);
-        return () => window.clearTimeout(timeout);
-    }, [router]);
+    const syncSession = useChurchStore((state) => state.syncSession);
+    const [error, setError] = useState("");
+    const [attempt, setAttempt] = useState(0);
 
-    return (
-        <main className="splash" aria-live="polite">
-            <span className="mark" aria-hidden="true"><i /><i /></span>
-            <h1>사이</h1>
-            <p>말씀과 일상을 나누는 우리 공간</p>
-            <span className="loader" aria-label="공간을 준비하고 있어요" />
-        </main>
-    );
+    useEffect(() => {
+        let active = true;
+        void (async () => {
+            const [status] = await Promise.all([
+                syncSession(),
+                new Promise<void>((resolve) => window.setTimeout(resolve, 450)),
+            ]);
+            if (!active) return;
+            const { apiError, mustChangePassword } = useChurchStore.getState();
+            if (apiError) {
+                setError(apiError);
+                return;
+            }
+            router.replace(mustChangePassword ? "/change-password" : status === "approved" ? "/community/home" : status === "none" ? "/start" : "/pending");
+        })();
+        return () => { active = false; };
+    }, [attempt, router, syncSession]);
+
+    return <SplashScreen error={error} onRetry={() => { setError(""); setAttempt((current) => current + 1); }} />;
 }
