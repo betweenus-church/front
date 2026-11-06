@@ -1,2 +1,7 @@
+packages:
+  - client
+  - admin
+  - packages/*
+
 allowBuilds:
   '@parcel/watcher': false

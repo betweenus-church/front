@@ -1,0 +1,12 @@
+.admin-auth { min-height: 100svh; display: grid; place-items: center; padding: var(--space-lg); background: var(--paper); }
+.admin-auth-loading { padding: var(--space-xl); color: var(--muted); }
+.admin-auth-panel { width: min(100%, 440px); padding: var(--space-step-8); border-radius: var(--radius-card); background: var(--white); }
+.admin-auth-panel h1 { color: var(--ink); line-height: 1.35; }
+.admin-auth-field { display: block; margin-top: var(--space-lg); color: var(--ink); font-size: var(--text-sm); }
+.admin-auth-field small { color: var(--muted); }
+.admin-auth-field input { display: block; width: 100%; margin-top: var(--space-xs); padding: var(--space-sm); border: 1px solid var(--color-field-edge); border-radius: var(--radius-input); color: var(--ink); background: var(--white); font-size: var(--text-md); }
+.admin-auth-panel > .button { width: 100%; margin-top: var(--space-lg); }
+.admin-auth-panel { border: 1px solid var(--border-subtle); border-radius: var(--card-radius); box-shadow: var(--shadow-overlay); }
+.admin-auth-panel h1 { font-size: var(--text-28); }
+.page-context { margin-top: 12px; color: var(--text-muted); font-size: var(--text-14); }
+.form-error { color: var(--status-error); font-size: var(--text-14); margin-top: 12px; }

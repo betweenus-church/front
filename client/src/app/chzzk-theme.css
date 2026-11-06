@@ -1,0 +1,162 @@
+.app-shell { padding-top: 72px; padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+.app-header {
+  position: fixed; inset: 0 0 auto; z-index: var(--z-sticky-nav); width: 100%; height: 72px;
+  padding-inline: 24px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-canvas);
+}
+.brand { color: var(--text-primary); font-size: 24px; font-weight: 800; }
+.mark i { border-color: var(--brand); }
+.header-church { color: var(--text-muted); font-size: var(--text-13); }
+.avatar, .profile-avatar { color: var(--text-on-brand); background: var(--brand); }
+.header-inbox { color: var(--text-secondary); }
+.header-inbox:hover { background: var(--bg-hover); }
+.header-inbox span { color: var(--text-on-brand); }
+.app-content { width: min(100%, 1200px); padding: 32px 32px 48px; }
+.preview-banner {
+  width: min(calc(100% - 64px), 1136px); padding: 12px 16px; margin-top: 24px;
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-6); background: var(--bg-surface);
+}
+.preview-banner p, .preview-banner strong { color: var(--text-muted); font-size: var(--text-13); }
+.preview-banner a { color: var(--brand); font-size: var(--text-13); }
+.preview-banner strong { color: var(--text-primary); }
+.section-page { width: min(100%, 800px); padding-top: 0; }
+.section-page h1, .home-greeting h1 { font-size: var(--text-28); font-weight: 700; line-height: 1.3; }
+.page-context { font-size: var(--text-14); }
+.home-greeting { padding: 0 0 28px; }
+.home-date { margin-bottom: 12px; font-size: var(--text-13); }
+.greeting-mark { width: 52px; height: 52px; background: var(--bg-surface); }
+.home-board { grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: 24px; }
+.home-word { top: 100px; }
+.week-card {
+  min-height: 368px; padding: 24px; border: 1px solid var(--border-subtle); border-top: 3px solid var(--brand);
+  border-radius: var(--card-radius); color: var(--text-primary); background: var(--bg-surface);
+}
+.week-card:hover { border-color: var(--brand); background: var(--bg-surface); }
+.week-card__top { color: var(--text-secondary); font-size: var(--text-13); }
+.week-card__top .week-card__label { color: var(--text-primary); font-size: var(--text-15); }
+.week-card__top > svg { color: var(--brand); }
+.week-card__top span:last-child { gap: 6px; padding: 6px 10px; border-radius: var(--radius-6); color: var(--text-on-brand); background: var(--brand); font-size: var(--text-12); font-weight: 700; }
+.week-card .week-card__title { margin-top: 32px; font-size: var(--text-28); line-height: 1.5; }
+.week-card .week-card__type { color: var(--text-muted); font-size: var(--text-13); }
+.week-card .week-card__scripture { border-top-color: var(--border-subtle); }
+.week-card .week-card__scripture p { color: var(--text-primary); font-size: var(--text-15); }
+.week-card > p { color: var(--text-muted); font-size: var(--text-13); }
+.home-section-heading { margin-top: 24px; }
+.home-section-heading h2 { font-size: var(--text-19); font-weight: 700; }
+.home-section-heading button, .home-section-heading a { color: var(--text-muted); font-size: var(--text-13); }
+.home-section-heading :is(button, a):hover { color: var(--brand); }
+.home-news-card, .home-photo, .home-prayer, .home-notice {
+  border: 1px solid var(--border-subtle); border-radius: var(--card-radius); background: var(--bg-surface);
+}
+.home-news-card { padding: 20px 44px 20px 20px; }
+.home-news-card strong { font-size: var(--text-17); }
+.home-news-card small { color: var(--brand); font-size: var(--text-12); }
+.home-news-card span { color: var(--text-muted); font-size: var(--text-13); }
+.home-news-card > svg { color: var(--text-muted); }
+.home-news-card:hover, .home-photo:hover, .home-prayer:hover { border-color: var(--border-control); background: var(--bg-surface); }
+.home-photo, .home-prayer { min-height: 88px; padding: 16px; font-size: var(--text-15); }
+.home-photo strong, .home-prayer strong { font-size: var(--text-15); }
+.home-photo__art { width: 72px; height: 72px; border-radius: var(--radius-8); }
+.home-photo > svg, .home-prayer > svg, .home-prayer__icon { color: var(--brand); }
+.home-prayer__count { color: var(--text-muted); font-size: var(--text-12); }
+.home-quote { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border-subtle); font-size: var(--text-12); }
+.home-quote .mark { opacity: 0.65; }
+
+.bottom-nav {
+  position: fixed; inset: auto 0 0; width: 100%; min-height: 72px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  transform: none; border: 0; border-top: 1px solid var(--border-subtle); border-radius: 0; box-shadow: none; background: var(--bg-canvas);
+}
+.bottom-nav a { min-height: 56px; padding: 8px 4px; border-radius: var(--radius-6); color: var(--text-muted); }
+.bottom-nav a.active { color: var(--brand); background: var(--bg-hover); }
+.bottom-nav a:hover { color: var(--text-primary); background: var(--bg-hover); }
+.bottom-nav a span { font-size: var(--text-12); font-weight: 600; }
+.bottom-nav a svg { width: 22px; height: 22px; }
+.toast { color: var(--text-primary); background: var(--bg-raised); border: 1px solid var(--border-control); border-radius: var(--radius-8); box-shadow: var(--shadow-overlay); }
+.round-add { color: var(--text-on-brand); background: var(--brand); }
+.field input, .field textarea, .field select { min-height: 44px; font-size: var(--text-14); padding: 10px 12px; }
+.field textarea { min-height: 120px; }
+.field > span, .consent, .privacy-note { font-size: var(--text-14); }
+.word-date-trigger { border-radius: var(--control-radius); font-size: var(--text-14); }
+.word-calendar { border: 1px solid var(--border-subtle); border-radius: var(--card-radius); }
+.word-calendar-day.is-selected { color: var(--text-on-brand); }
+.verse-card, .word-post, .prayer-card, .prayer-preview, .photo-card, .composer, .word-data-state {
+  border: 1px solid var(--border-subtle); border-radius: var(--card-radius); background: var(--bg-surface);
+}
+.verse-card { padding: 24px; }
+.verse-card h2 { color: var(--text-primary); font-size: var(--text-28); }
+.verse-card .card-kicker, .verse-card .verse-card__reference { color: var(--brand); font-size: var(--text-13); }
+.verse-card .verse-card__scripture { border-color: var(--border-subtle); }
+.verse-card .verse-card__scripture p, .word-post p, .prayer-card p, .prayer-preview > p { font-size: var(--text-15); }
+.word-post, .prayer-card, .prayer-preview { padding: 20px; }
+.pray-button { border-radius: var(--control-radius); font-size: var(--text-14); }
+.pray-button[aria-pressed="true"] { color: var(--brand); background: var(--green-pale); }
+.photo-card__open, .photo-detail__image { border-radius: var(--radius-8); }
+.photo-caption { font-size: var(--text-15); }
+.empty-state { border: 1px solid var(--border-subtle); border-radius: var(--card-radius); background: var(--bg-surface); }
+.empty-state strong { font-size: var(--text-17); }
+.empty-state p { font-size: var(--text-14); }
+.modal, .admin-auth-panel { border: 1px solid var(--border-subtle); border-radius: var(--card-radius); box-shadow: var(--shadow-overlay); }
+.modal-backdrop { z-index: var(--z-modal); background: var(--black-a80); }
+.toast { z-index: var(--z-toast); }
+.modal h2 { font-size: var(--text-19); }
+.modal p { font-size: var(--text-14); }
+.admin-auth-panel h1 { font-size: var(--text-28); }
+.admin-auth-field input { min-height: var(--control-height); }
+.status-icon { border-radius: var(--card-radius); }
+.status-card h1, .auth-content h1 { font-size: var(--text-28); }
+.splash { color: var(--text-primary); background: var(--bg-canvas); }
+.splash p { color: var(--text-muted); }
+.loader { background: var(--border-subtle); }
+.welcome__body h1 { font-size: 40px; }
+.welcome__art { border-radius: var(--card-radius); background: var(--bg-surface); border: 1px solid var(--border-subtle); }
+.welcome__art .mark i { border-color: var(--brand); }
+.welcome__art .art-note { color: var(--text-muted); font-size: var(--text-15); }
+.welcome__intro { color: var(--brand); font-size: var(--text-15); }
+.welcome__copy, .auth-lede { font-size: var(--text-15); }
+.back-button { border-radius: var(--control-radius); color: var(--text-primary); }
+
+@media (min-width: 1200px) {
+  .app-shell { padding-left: var(--layout-sidebar); padding-bottom: 32px; }
+  .app-header { padding-inline: 24px 32px; }
+  .app-content { padding: 32px 40px 48px; }
+  .preview-banner { width: min(calc(100% - 80px), 1120px); }
+  .bottom-nav {
+    inset: 72px auto 0 0; z-index: var(--z-sticky); display: flex; flex-direction: column; justify-content: flex-start;
+    width: var(--layout-sidebar); padding: 24px 12px; gap: 4px; border-top: 0; border-right: 1px solid var(--border-subtle);
+  }
+  .bottom-nav::before { content: "우리 공동체"; padding: 0 12px 16px; color: var(--text-muted); font-size: var(--text-12); }
+  .bottom-nav a { display: flex; align-items: center; flex: 0 0 auto; width: 100%; min-height: 48px; flex-direction: row; justify-content: flex-start; gap: 14px; padding: 12px; }
+  .bottom-nav a span { font-size: var(--text-14); }
+  .bottom-nav a.active { color: var(--brand); background: var(--bg-raised); }
+  .toast { bottom: 24px; }
+}
+@media (max-width: 767px) {
+  .app-header { height: 64px; padding-inline: 16px; }
+  .app-shell { padding-top: 64px; }
+  .brand { font-size: 22px; }
+  .header-meta { gap: 12px; }
+  .header-church { max-width: 120px; font-size: var(--text-12); }
+  .avatar { width: 40px; height: 40px; flex-basis: 40px; }
+  .preview-banner { width: calc(100% - 32px); margin-top: 16px; gap: 12px; padding: 10px 12px; }
+  .preview-banner p, .preview-banner strong, .preview-banner a { font-size: var(--text-12); }
+  .app-content { padding: 24px 16px 32px; }
+  .home-greeting { padding-bottom: 24px; }
+  .home-greeting h1, .section-page h1 { font-size: var(--text-28); }
+  .home-date { font-size: var(--text-12); gap: 8px; }
+  .greeting-mark { width: 44px; height: 44px; flex-basis: 44px; }
+  .home-board { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .home-word { position: static; }
+  .week-card { min-height: 300px; padding: 20px; border-radius: var(--card-radius); }
+  .week-card .week-card__title { font-size: 26px; margin-top: 28px; }
+  .home-news-card { padding: 16px 40px 16px 16px; }
+  .home-news-card strong { font-size: var(--text-15); }
+  .home-photo, .home-prayer { padding: 16px; }
+  .home-empty { white-space: normal; text-align: left; }
+  .home-quote { font-size: var(--text-12); }
+  .verse-card { padding: 20px; }
+  .verse-card h2 { font-size: 24px; }
+  .word-post, .prayer-card, .prayer-preview { padding: 16px; }
+  .bottom-nav { bottom: 0; }
+  .welcome { padding: 24px 20px; }
+  .welcome__body h1 { font-size: 32px; }
+  .welcome__art { border-radius: var(--card-radius); }
+}

@@ -1,22 +1,26 @@
 {
-  "name": "sai-church-community",
+  "name": "sai-frontend",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.25.0",
   "scripts": {
-    "dev": "next dev -H 127.0.0.1 -p 3001",
-    "build": "next build",
-    "build:qa": "node scripts/qa.mjs build",
-    "start": "next start -H 127.0.0.1",
-    "start:qa": "node scripts/qa.mjs start",
-    "typecheck": "tsc --noEmit",
-    "icons": "node scripts/generate-icons.mjs"
-  },
-  "dependencies": {
-    "next": "^16.3.6",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "sass": "^1.93.2",
-    "zustand": "^5.0.9"
+    "dev": "pnpm --parallel --filter @sai/client --filter @sai/admin run dev",
+    "dev:client": "pnpm --filter @sai/client dev",
+    "dev:admin": "pnpm --filter @sai/admin dev",
+    "build": "pnpm -r --workspace-concurrency=1 --if-present run build",
+    "typecheck": "pnpm -r --workspace-concurrency=1 --if-present run typecheck",
+    "start:client": "pnpm --filter @sai/client start",
+    "start:admin": "pnpm --filter @sai/admin start",
+    "build:qa": "pnpm --filter @sai/client build:qa",
+    "start:qa": "pnpm --filter @sai/client start:qa",
+    "icons": "pnpm --filter @sai/client icons",
+    "check": "node scripts/check-workspace.mjs",
+    "start": "pnpm --parallel --filter @sai/client --filter @sai/admin run start",
+    "build:client": "pnpm --filter @sai/client build",
+    "build:admin": "pnpm --filter @sai/admin build",
+    "build:server": "node scripts/same-server.mjs build",
+    "start:server": "node scripts/same-server.mjs start",
+    "stop:server": "node scripts/same-server.mjs stop"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",

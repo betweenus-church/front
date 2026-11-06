@@ -1,0 +1,48 @@
+.content { max-width: 1500px; margin: 0 auto; padding: var(--space-step-11) var(--space-step-11) var(--space-step-20); }
+.heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-step-5); margin-bottom: var(--space-step-7); }
+.heading h1 { margin: 0 0 var(--space-xs); color: var(--ink); font-size: 32px; }
+.heading p { margin: 0; color: var(--muted); }
+.panel { min-height: 320px; padding: var(--space-step-8) var(--space-step-9); border: 1px solid var(--color-paper-3); border-radius: var(--card-radius); background: var(--white); }
+.panel h2 { margin: 0 0 var(--space-lg); color: var(--ink); font-size: 22px; }
+.panel > p { color: var(--muted); }
+.primary, .danger, .actions button, .empty button { min-height: 42px; padding: var(--space-xs) var(--space-md); border: 1px solid var(--line); border-radius: 8px; color: var(--green); background: var(--white); font: inherit; font-size: var(--text-sm); font-weight: 700; cursor: pointer; }
+.primary, .actions .primary { border-color: var(--green); color: var(--color-accent-ink); background: var(--green); }
+.danger, .actions .danger { border-color: var(--color-error); color: var(--color-gold-ink); background: var(--white); }
+.listControls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-step-5); }
+.listControls input { min-width: 220px; width: min(100%, 370px); height: 43px; padding: 0 var(--space-md); border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+.listControls select { height: 43px; padding: 0 var(--space-sm); border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--white); font: inherit; }
+.tabs { display: flex; gap: var(--space-xs); }
+.tabs button { padding: var(--space-xs) var(--space-md); border: 1px solid var(--color-paper-3); border-radius: 99px; color: var(--muted); background: var(--white); font: inherit; cursor: pointer; }
+.tabs .activeTab { border-color: var(--green); color: var(--color-accent-ink); background: var(--green); font-weight: 700; }
+.tableWrap { overflow-x: auto; }
+.tableWrap table { width: 100%; min-width: 570px; border-collapse: collapse; }
+.tableWrap th { padding: var(--space-md); color: var(--muted); background: var(--paper); font-size: var(--text-xs); text-align: left; }
+.tableWrap td { padding: var(--space-md) var(--space-md); border-bottom: 1px solid var(--color-paper-3); color: var(--ink); font-size: var(--text-sm); }
+.tableWrap td:first-child { width: 50%; }
+.tableWrap td button { max-width: 100%; overflow: hidden; padding: 0; border: 0; color: var(--ink); background: none; font: inherit; font-weight: 700; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.tableWrap td button:hover { text-decoration: underline; }
+.empty { display: grid; min-height: 220px; align-content: center; justify-items: center; gap: var(--space-md); color: var(--muted); text-align: center; }
+.empty strong { color: var(--ink); }
+.sectionTop { display: flex; align-items: start; justify-content: space-between; gap: var(--space-step-5); }
+.textButton { border: 0; color: var(--green); background: none; font: inherit; cursor: pointer; }
+.form { display: grid; gap: var(--space-lg); max-width: 850px; }
+.form label { display: grid; gap: var(--space-xs); color: var(--ink); font-size: var(--text-sm); font-weight: 700; }
+.form label span { color: var(--muted); font-size: var(--text-xs); font-weight: 400; }
+.form :is(input, select, textarea) { width: 100%; min-height: 44px; padding: var(--space-sm) var(--space-sm); border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--white); font: inherit; font-weight: 400; }
+.form textarea { line-height: 1.65; }
+.form small { color: var(--muted); text-align: right; }
+.coverStatus { margin: calc(-1 * var(--space-sm)) 0 0; color: var(--green); font-size: var(--text-xs); }
+.coverPreview { display: grid; justify-items: start; gap: var(--space-xs); }
+.coverPreview img { width: min(100%, 340px); max-height: 220px; border-radius: 12px; object-fit: cover; }
+.coverPreview button { padding: var(--space-2xs) 0; border: 0; color: var(--color-gold-ink); background: none; font: inherit; cursor: pointer; }
+.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-step-8); }
+.error { padding: var(--space-sm) var(--space-md); border-radius: 8px; color: var(--color-gold-ink) !important; background: var(--paper); font-size: var(--text-sm); }
+.preview { max-width: 750px; padding: var(--space-step-7); border: 1px solid var(--color-paper-3); border-radius: var(--card-radius); background: var(--white); }
+.preview span { color: var(--green); font-size: var(--text-xs); }
+.preview h3 { margin: var(--space-xs) 0 var(--space-step-5); font-size: 25px; overflow-wrap: anywhere; }
+.preview img { display: block; width: 100%; max-height: 350px; border-radius: 12px; object-fit: cover; }
+.preview p { margin: var(--space-lg) 0 0; line-height: 1.8; overflow-wrap: anywhere; white-space: pre-wrap; }
+.details { display: flex; flex-wrap: wrap; gap: var(--space-md) var(--space-step-8); margin: 0 0 var(--space-lg); }
+.details div { display: flex; gap: var(--space-xs); font-size: var(--text-xs); }
+.details dt { color: var(--muted); } .details dd { margin: 0; color: var(--ink); font-weight: 700; }
+@media (max-width: 720px) { .content { padding: var(--space-step-7) var(--space-md) var(--space-step-15); } .heading { align-items: start; } .heading h1 { font-size: 25px; } .heading p { font-size: var(--text-xs); } .panel { padding: var(--space-lg) var(--space-step-5); } .listControls input { width: 100%; } .actions { justify-content: stretch; } .actions button { flex: 1; } }

@@ -1,0 +1,11 @@
+{
+  "name": "@sai/shared",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./api": "./src/api.ts",
+    "./news": "./src/news.ts",
+    "./daily-word": "./src/daily-word.ts",
+    "./urls": "./src/urls.ts"
+  }
+}

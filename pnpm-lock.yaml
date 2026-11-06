@@ -7,7 +7,49 @@ settings:
 importers:
 
   .:
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.19.0
+      '@types/react':
+        specifier: ^19.2.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.2.0
+        version: 19.3.0(@types/react@19.3.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  admin:
     dependencies:
+      '@sai/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
+      '@sai/ui':
+        specifier: workspace:*
+        version: link:../packages/ui
+      next:
+        specifier: ^16.3.6
+        version: 16.3.6(@types/node@24.19.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.0)
+      react:
+        specifier: ^19.2.0
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.2.0
+        version: 19.3.0(react@19.3.0)
+      sass:
+        specifier: ^1.93.2
+        version: 1.105.0
+
+  client:
+    dependencies:
+      '@sai/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
+      '@sai/ui':
+        specifier: workspace:*
+        version: link:../packages/ui
       next:
         specifier: ^16.3.6
         version: 16.3.6(@types/node@24.19.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.0)
@@ -23,19 +65,10 @@ importers:
       zustand:
         specifier: ^5.0.9
         version: 5.0.15(@types/react@19.3.0)(react@19.3.0)
-    devDependencies:
-      '@types/node':
-        specifier: ^24.5.2
-        version: 24.19.0
-      '@types/react':
-        specifier: ^19.2.0
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: ^19.2.0
-        version: 19.3.0(@types/react@19.3.0)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
+
+  packages/shared: {}
+
+  packages/ui: {}
 
 packages:
 
