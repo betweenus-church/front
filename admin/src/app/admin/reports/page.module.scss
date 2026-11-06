@@ -1,0 +1,141 @@
+.detailBody {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: var(--space-lg) var(--space-step-7) var(--space-step-7);
+}
+.detailBody dl {
+    margin: 0;
+}
+.detailBody dl > div {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: var(--space-md);
+    align-items: center;
+    min-height: 46px;
+    border-bottom: 1px solid var(--color-paper-3);
+}
+.detailBody dt {
+    color: var(--muted);
+    font-size: var(--text-xs);
+}
+.detailBody dd {
+    margin: 0;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+}
+.excerpt {
+    margin-top: var(--space-lg);
+    padding: var(--space-step-5);
+    border-radius: 9px;
+    background: var(--paper);
+}
+.excerpt strong {
+    color: var(--ink);
+    font-size: var(--text-sm);
+}
+.reportImage {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    max-height: 360px;
+    margin-top: var(--space-md);
+    border-radius: 8px;
+    object-fit: contain;
+}
+.imageUnavailable {
+    margin: var(--space-md) 0 0;
+    color: var(--muted);
+    font-size: var(--text-xs);
+}
+.excerpt p {
+    margin: var(--space-sm) 0;
+    color: var(--ink);
+    font-size: var(--text-sm);
+}
+.excerpt small {
+    color: var(--muted);
+    font-size: var(--text-xs);
+}
+.status {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: 99px;
+    color: var(--color-gold-ink);
+    background: var(--paper);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    white-space: nowrap;
+}
+.savedOutcome {
+    color: var(--ink);
+    font-size: var(--text-xs);
+}
+.dangerButton {
+    display: inline-flex;
+    min-width: 120px;
+    min-height: 45px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-md);
+    border: 1px solid var(--color-paper-3);
+    border-radius: 8px;
+    color: var(--color-gold-ink);
+    background: var(--white);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 700;
+}
+.dangerButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.outcomeField {
+    display: grid;
+    gap: var(--space-sm);
+    color: var(--ink);
+    font-size: var(--text-sm);
+    font-weight: 700;
+}
+.outcomeField textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 var(--space-md);
+    border: 1px solid var(--color-paper-3);
+    border-radius: 8px;
+    color: var(--ink);
+    background: var(--white);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 400;
+}
+.outcomeField textarea[aria-invalid="true"] {
+    border-color: var(--color-error);
+}
+.resultActions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+}
+.resultActions button {
+    margin-top: 0 !important;
+}
+@media (max-width: 720px) {
+    .detailBody {
+        padding: var(--space-md);
+    }
+    .detailBody dl > div {
+        grid-template-columns: 95px minmax(0, 1fr);
+    }
+    .actions {
+        flex-wrap: wrap;
+    }
+    .actions button {
+        min-width: 0;
+        flex: 1;
+    }
+    .resultActions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

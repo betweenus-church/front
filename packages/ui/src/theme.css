@@ -1,0 +1,98 @@
+/* Sai adapts the supplied chzzk-design-system tokens; see ../GUIDE.md. */
+:root {
+  --paper: var(--bg-canvas);
+  --white: var(--bg-surface);
+  --ink: var(--text-primary);
+  --muted: var(--text-muted);
+  --line: var(--border-subtle);
+  --green: var(--brand);
+  --green-dark: var(--brand-hover);
+  --green-pale: color-mix(in srgb, var(--brand) 8%, var(--bg-surface));
+  --gold: var(--brand);
+  --color-paper: var(--bg-canvas);
+  --color-paper-2: var(--bg-surface);
+  --color-paper-3: var(--bg-raised);
+  --color-ink: var(--text-primary);
+  --color-ink-2: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-rule: var(--border-subtle);
+  --color-rule-2: var(--border-strong);
+  --color-field-edge: var(--border-control);
+  --color-accent: var(--brand);
+  --color-accent-ink: var(--text-on-brand);
+  --color-focus: var(--focus-ring);
+  --color-error: var(--status-error);
+  --color-success: var(--status-success);
+  --color-mint: var(--green-pale);
+  --color-sunlight: var(--bg-surface);
+  --color-peach: var(--bg-surface);
+  --color-gold-ink: var(--text-secondary);
+  --color-shadow: rgb(0 0 0 / 30%);
+  --shadow-card: var(--shadow-overlay);
+  --font-display: var(--font-sans);
+  --font-body: var(--font-sans);
+  --font-outlier: var(--font-sans);
+  --radius-card: var(--card-radius);
+  --radius-input: var(--control-radius);
+  --text-display: var(--text-28);
+  --text-section: var(--text-19);
+  --text-title: var(--text-17);
+  --text-md: var(--text-15);
+  --dur-micro: var(--duration-200);
+  --dur-short: var(--duration-250);
+  --dur-long: var(--duration-400);
+  --green-dark-veil-15: rgb(0 0 0 / 30%);
+  --green-dark-veil-20: rgb(0 0 0 / 40%);
+  --ink-veil-5: rgb(0 0 0 / 5%);
+  --ink-veil-6: rgb(0 0 0 / 6%);
+  --ink-veil-7: rgb(0 0 0 / 7%);
+  --ink-veil-12: rgb(0 0 0 / 12%);
+  --ink-veil-13: rgb(0 0 0 / 13%);
+  --ink-veil-14: rgb(0 0 0 / 14%);
+  --ink-veil-15: rgb(0 0 0 / 15%);
+  --ink-veil-18: rgb(0 0 0 / 18%);
+  --ink-veil-36: rgb(0 0 0 / 36%);
+  --ink-veil-40: rgb(0 0 0 / 40%);
+  --ink-veil-52: var(--black-a80);
+  --ink-veil-60: var(--black-a80);
+  --ink-veil-75: var(--black-a80);
+  --ink-veil-85: var(--black-a80);
+  --white-veil-78: var(--text-secondary);
+  --white-veil-74: var(--text-muted);
+  --white-veil-73: var(--text-muted);
+  --white-veil-72: var(--text-muted);
+  --white-veil-75: var(--text-muted);
+  --white-veil-20: var(--border-subtle);
+}
+
+html, body { color-scheme: dark; background: var(--bg-canvas); }
+body { margin: 0; color: var(--text-primary); font-family: var(--font-sans); font-size: var(--text-15); line-height: var(--leading-body); letter-spacing: -0.02em; }
+::selection { color: var(--text-on-brand); background: var(--brand); }
+button, a { transition-timing-function: var(--ease-default); }
+:is(button, a, input, select, textarea, summary):focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 4px; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }
+body :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]), textarea, select) {
+  color: var(--text-primary); background: var(--bg-surface); border-color: var(--border-control); border-radius: var(--control-radius);
+}
+body :is(input, textarea, select):focus-visible { border-color: var(--brand); }
+body :is(input, textarea)[aria-invalid="true"] { border-color: var(--status-error); }
+input::placeholder, textarea::placeholder { color: var(--text-muted); opacity: 1; }
+
+
+.button { min-height: var(--control-height); padding: 10px 16px; border-radius: var(--control-radius); font-size: var(--text-14); font-weight: 600; line-height: var(--leading-ui); }
+
+.button--primary { color: var(--text-on-brand); background: var(--brand); }
+
+.button--primary:hover { background: var(--brand-hover); }
+
+.button--primary:active { background: var(--brand-pressed); }
+
+.button--outline { color: var(--text-primary); border-color: var(--border-control); background: var(--bg-surface); }
+
+.button--outline:hover { background: var(--bg-raised); }
+
+.button--quiet { color: var(--text-secondary); }
+
+.button--quiet:hover { background: var(--bg-hover); }
+
+.button:disabled, .button[aria-disabled="true"] { opacity: 1; color: var(--text-muted); background: var(--bg-raised); border-color: var(--border-subtle); }

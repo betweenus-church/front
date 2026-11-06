@@ -5,3 +5,16 @@ node_modules/
 *.tsbuildinfo
 .env*
 .vercel/
+
+.next-qa/
+!.env.example
+
+.server/
+!.env.server.example
+
+.server-build.log
+
+.next-production/
+*.log
+
+next-env.d.ts
