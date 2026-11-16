@@ -19,7 +19,10 @@ export function scriptureCredit(version: string | null, attribution: string | nu
 // 한국 시간 기준 오늘 날짜를 'YYYY-MM-DD'로 돌려준다.
 export function churchToday(): string {
     const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit",
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
     }).formatToParts(new Date());
     // 날짜 조각에서 연·월·일 값을 꺼낸다.
     const value = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
@@ -35,6 +38,7 @@ export function shiftDate(date: string, days: number): string {
 
 // 날짜를 '11월 9일 월요일' 형태로 바꾼다.
 export function displayDate(date: string): string {
-    return new Intl.DateTimeFormat("ko-KR", { timeZone: "UTC", month: "long", day: "numeric", weekday: "long" })
-        .format(new Date(`${date}T12:00:00Z`));
+    return new Intl.DateTimeFormat("ko-KR", { timeZone: "UTC", month: "long", day: "numeric", weekday: "long" }).format(
+        new Date(`${date}T12:00:00Z`),
+    );
 }

@@ -51,7 +51,11 @@ export default function WordDatePicker({ value, maxDate, onChange }: Props) {
     const firstWeekday = new Date(Date.UTC(year, number - 1, 1)).getUTCDay();
     const daysInMonth = new Date(Date.UTC(year, number, 0)).getUTCDate();
     const label = new Intl.DateTimeFormat("ko-KR", {
-        timeZone: "UTC", year: "numeric", month: "long", day: "numeric", weekday: "short",
+        timeZone: "UTC",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "short",
     }).format(new Date(`${selected}T12:00:00Z`));
 
     return (
@@ -72,19 +76,42 @@ export default function WordDatePicker({ value, maxDate, onChange }: Props) {
                 </svg>
                 <span>{label}</span>
                 <svg className="word-date-chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path d="m5 8 5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                        d="m5 8 5 5 5-5"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
                 </svg>
             </button>
             {open && (
                 <div className="word-calendar" id="word-calendar" role="dialog" aria-label="말씀 날짜 달력">
                     <div className="word-calendar-header">
-                        <button type="button" aria-label="이전 달" onClick={() => setMonth(moveMonth(month, -1))}>‹</button>
-                        <strong>{year}년 {number}월</strong>
-                        <button type="button" aria-label="다음 달" disabled={month >= maxDate.slice(0, 7)} onClick={() => setMonth(moveMonth(month, 1))}>›</button>
+                        <button type="button" aria-label="이전 달" onClick={() => setMonth(moveMonth(month, -1))}>
+                            ‹
+                        </button>
+                        <strong>
+                            {year}년 {number}월
+                        </strong>
+                        <button
+                            type="button"
+                            aria-label="다음 달"
+                            disabled={month >= maxDate.slice(0, 7)}
+                            onClick={() => setMonth(moveMonth(month, 1))}
+                        >
+                            ›
+                        </button>
                     </div>
                     <div className="word-calendar-grid">
-                        {weekdays.map((day) => <span className="word-calendar-weekday" key={day}>{day}</span>)}
-                        {Array.from({ length: firstWeekday }, (_, index) => <span key={`blank-${index}`} />)}
+                        {weekdays.map((day) => (
+                            <span className="word-calendar-weekday" key={day}>
+                                {day}
+                            </span>
+                        ))}
+                        {Array.from({ length: firstWeekday }, (_, index) => (
+                            <span key={`blank-${index}`} />
+                        ))}
                         {Array.from({ length: daysInMonth }, (_, index) => {
                             const date = `${month}-${String(index + 1).padStart(2, "0")}`;
                             return (
@@ -95,7 +122,11 @@ export default function WordDatePicker({ value, maxDate, onChange }: Props) {
                                     aria-label={`${date} 말씀 보기`}
                                     aria-pressed={date === selected}
                                     disabled={date > maxDate}
-                                    onClick={() => { onChange(date); setOpen(false); trigger.current?.focus(); }}
+                                    onClick={() => {
+                                        onChange(date);
+                                        setOpen(false);
+                                        trigger.current?.focus();
+                                    }}
                                 >
                                     {index + 1}
                                 </button>

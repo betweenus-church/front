@@ -7,20 +7,20 @@
 `index.html`을 브라우저로 열면 됩니다. 빌드·설치·외부 네트워크가 필요하지 않습니다. `tokens.css`와 `components.css`를 제품에 복사하세요. `preview.css`와 `preview.js`는 문서와 데모 전용입니다.
 
 ```html
-<link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="components.css" />
 <button class="button button-primary">팔로우</button>
 <label for="search">검색</label>
-<input id="search" class="input" placeholder="검색어 입력">
+<input id="search" class="input" placeholder="검색어 입력" />
 ```
 
 ## 토큰 계층
 
-| 계층 | 예 | 사용 |
-| --- | --- | --- |
-| 원시값 | `--neutral-900`, `--mint-500` | 팔레트와 수치 정의 |
-| 의미 | `--bg-canvas`, `--text-primary`, `--brand` | 제품 스타일에서 우선 사용 |
-| 컴포넌트 | `--button-primary-bg`, `--control-radius` | 여러 컴포넌트의 일관성 |
+| 계층     | 예                                         | 사용                      |
+| -------- | ------------------------------------------ | ------------------------- |
+| 원시값   | `--neutral-900`, `--mint-500`              | 팔레트와 수치 정의        |
+| 의미     | `--bg-canvas`, `--text-primary`, `--brand` | 제품 스타일에서 우선 사용 |
+| 컴포넌트 | `--button-primary-bg`, `--control-radius`  | 여러 컴포넌트의 일관성    |
 
 `tokens.json`은 이 라이브러리의 단순 JSON 스키마입니다. 각 토큰의 `value`, `group`, `origin`, `description`을 제공합니다. 전용 DTCG 파일로 표방하지 않습니다. `var(--...)` 참조는 CSS 토큰명과 일치합니다.
 
@@ -38,19 +38,19 @@
 
 ## 컴포넌트 계약
 
-| 컴포넌트 | 클래스와 속성 | 상태 |
-| --- | --- | --- |
-| 버튼 | `.button` + `.button-primary / -secondary / -ghost` | hover, active, focus-visible, disabled |
-| 로딩 버튼 | `aria-busy="true" aria-disabled="true"` | 스피너 표시; 앱 코드에서 중복 실행 차단 필요 |
-| 입력창 | `.input`, 연결된 `<label>` | focus, disabled, `aria-invalid="true"` |
-| 도움말 | `.field-help`, `.error / .success` | 입력에 `aria-describedby`로 연결 |
-| 체크박스 | `.checkbox-label` 내부 네이티브 input | checked, unchecked, disabled |
-| 스위치 | `.switch-label` 내부 checkbox + `.switch-track` | 네이티브 체크 상태와 `role="switch"` |
-| 탭 | `.tabs`, `.tab`, `.tab-panel` | ARIA 연결 및 방향키, Home, End 처리 |
-| 칩 | `.chip`, `aria-pressed` | 한 항목 선택 |
-| 배지 | `.badge` + `.badge-live / -neutral / -brand` | 텍스트로 상태 표시 |
-| 알림 | `.notice` + `.notice-success / -error` | 동적 메시지는 제품에서 `role="status"` 또는 `alert` 지정 |
-| 카드 | `.content-card`, `.card-body`, `.avatar` | 콘텐츠와 액션 조합 |
+| 컴포넌트  | 클래스와 속성                                       | 상태                                                     |
+| --------- | --------------------------------------------------- | -------------------------------------------------------- |
+| 버튼      | `.button` + `.button-primary / -secondary / -ghost` | hover, active, focus-visible, disabled                   |
+| 로딩 버튼 | `aria-busy="true" aria-disabled="true"`             | 스피너 표시; 앱 코드에서 중복 실행 차단 필요             |
+| 입력창    | `.input`, 연결된 `<label>`                          | focus, disabled, `aria-invalid="true"`                   |
+| 도움말    | `.field-help`, `.error / .success`                  | 입력에 `aria-describedby`로 연결                         |
+| 체크박스  | `.checkbox-label` 내부 네이티브 input               | checked, unchecked, disabled                             |
+| 스위치    | `.switch-label` 내부 checkbox + `.switch-track`     | 네이티브 체크 상태와 `role="switch"`                     |
+| 탭        | `.tabs`, `.tab`, `.tab-panel`                       | ARIA 연결 및 방향키, Home, End 처리                      |
+| 칩        | `.chip`, `aria-pressed`                             | 한 항목 선택                                             |
+| 배지      | `.badge` + `.badge-live / -neutral / -brand`        | 텍스트로 상태 표시                                       |
+| 알림      | `.notice` + `.notice-success / -error`              | 동적 메시지는 제품에서 `role="status"` 또는 `alert` 지정 |
+| 카드      | `.content-card`, `.card-body`, `.avatar`            | 콘텐츠와 액션 조합                                       |
 
 `data-state`는 상태를 강제로 보여주는 문서용 속성입니다. 제품에서는 네이티브 `:hover`, `:active`, `:focus-visible`과 `disabled`를 사용하세요. 카드의 팔로우와 입력 확인은 데모이며 실제 서비스에 연결되지 않습니다. 탭·스위치·검증의 앱 로직은 제품이 소유하며 `preview.js`는 복사 가능한 참고 구현입니다.
 

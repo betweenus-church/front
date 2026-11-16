@@ -226,17 +226,17 @@
     transition: transform var(--duration-200) var(--ease-default);
 }
 
-.switch-label input:checked+.switch-track {
+.switch-label input:checked + .switch-track {
     background: var(--brand);
     border-color: var(--brand);
 }
 
-.switch-label input:checked+.switch-track::after {
+.switch-label input:checked + .switch-track::after {
     background: var(--text-on-brand);
     transform: translateX(18px);
 }
 
-.switch-label input:focus-visible+.switch-track {
+.switch-label input:focus-visible + .switch-track {
     outline: 2px solid var(--focus-ring);
     outline-offset: 4px;
 }
@@ -331,7 +331,7 @@
     font-size: var(--text-14);
 }
 
-.notice+.notice {
+.notice + .notice {
     margin-top: var(--space-12);
 }
 
@@ -383,7 +383,7 @@
     padding: var(--space-16);
 }
 
-.card-body>div:nth-child(2) {
+.card-body > div:nth-child(2) {
     min-width: 0;
     flex: 1;
 }
@@ -435,7 +435,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
     *,
     *::before,
     *::after {

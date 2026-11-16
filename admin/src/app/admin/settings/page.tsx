@@ -58,7 +58,15 @@ const statusLabels: Record<NoticeStatus, string> = {
 };
 // 현재 단계 번호로 어느 탭(기본/관리자/공지/푸시)인지 정한다.
 const tabForStep = (step: Step): Tab =>
-    step === "S45" ? "push" : Number(step.slice(1)) <= 7 ? "basic" : Number(step.slice(1)) <= 15 ? "admins" : Number(step.slice(1)) <= 43 ? "notices" : "word";
+    step === "S45"
+        ? "push"
+        : Number(step.slice(1)) <= 7
+          ? "basic"
+          : Number(step.slice(1)) <= 15
+            ? "admins"
+            : Number(step.slice(1)) <= 43
+              ? "notices"
+              : "word";
 // 오늘 날짜를 'YYYY.MM.DD' 형태로 만든다.
 const today = () =>
     new Date()
@@ -146,7 +154,15 @@ export default function AdminSettingsPage() {
     const [dailyWordsLoading, setDailyWordsLoading] = useState(true);
     const [dailyWordsError, setDailyWordsError] = useState("");
     const [dailyWordDate, setDailyWordDate] = useState("");
-    const [dailyWordDraft, setDailyWordDraft] = useState({ reference: "", scriptureText: "", scriptureVersion: "", scriptureAttribution: "", verse: "", question: "", readingUrl: "" });
+    const [dailyWordDraft, setDailyWordDraft] = useState({
+        reference: "",
+        scriptureText: "",
+        scriptureVersion: "",
+        scriptureAttribution: "",
+        verse: "",
+        question: "",
+        readingUrl: "",
+    });
     const [dailyWordSaveError, setDailyWordSaveError] = useState("");
     const [dailyWordSaving, setDailyWordSaving] = useState(false);
     const [pushSettings, setPushSettings] = useState<PushSettings | null>(null);
@@ -181,7 +197,10 @@ export default function AdminSettingsPage() {
             .then(setAdmins)
             .catch(() => setToast("운영자 계정을 불러오지 못했어요."));
         void api<PushSettings>("/admin/push/settings")
-            .then((value) => { setPushSettings(value); setPushDraft({ enabled: value.enabled, time: value.time }); })
+            .then((value) => {
+                setPushSettings(value);
+                setPushDraft({ enabled: value.enabled, time: value.time });
+            })
             .catch(() => setPushError("알림 설정을 불러오지 못했어요."));
     }, []);
 
@@ -202,12 +221,18 @@ export default function AdminSettingsPage() {
                 setManualTarget((current) => {
                     const [kind, rawId] = current.split(":");
                     const id = Number(rawId);
-                    return kind === "news" && published.some((item) => item.id === id)
-                        || kind === "notice" && nextNotices.some((item) => item.id === id && item.status === "published") ? current : "";
+                    return (kind === "news" && published.some((item) => item.id === id)) ||
+                        (kind === "notice" && nextNotices.some((item) => item.id === id && item.status === "published"))
+                        ? current
+                        : "";
                 });
             })
-            .catch(() => { if (!controller.signal.aborted) setNewsError("연결할 게시글을 불러오지 못했어요."); })
-            .finally(() => { if (!controller.signal.aborted) setNewsLoading(false); });
+            .catch(() => {
+                if (!controller.signal.aborted) setNewsError("연결할 게시글을 불러오지 못했어요.");
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setNewsLoading(false);
+            });
         return () => controller.abort();
     }, [step]);
 
@@ -215,14 +240,34 @@ export default function AdminSettingsPage() {
         const found = dailyWords.find((item) => item.date === dailyWordDate);
         setDailyWordSaveError("");
         if (found) {
-            setDailyWordDraft({ reference: found.reference, scriptureText: found.scriptureText ?? "", scriptureVersion: found.scriptureVersion ?? "", scriptureAttribution: found.scriptureAttribution ?? "", verse: found.verse, question: found.question, readingUrl: found.readingUrl ?? "" });
+            setDailyWordDraft({
+                reference: found.reference,
+                scriptureText: found.scriptureText ?? "",
+                scriptureVersion: found.scriptureVersion ?? "",
+                scriptureAttribution: found.scriptureAttribution ?? "",
+                verse: found.verse,
+                question: found.question,
+                readingUrl: found.readingUrl ?? "",
+            });
             return;
         }
         if (!dailyWordDate) return;
         const controller = new AbortController();
         void api<DailyWord>(`/daily-word?date=${dailyWordDate}`, { signal: controller.signal })
-            .then((word) => setDailyWordDraft({ reference: word.reference, scriptureText: word.scriptureText ?? "", scriptureVersion: word.scriptureVersion ?? "", scriptureAttribution: word.scriptureAttribution ?? "", verse: word.verse, question: word.question, readingUrl: "" }))
-            .catch(() => { if (!controller.signal.aborted) setDailyWordSaveError("이 날짜의 자동 말씀을 불러오지 못했어요."); });
+            .then((word) =>
+                setDailyWordDraft({
+                    reference: word.reference,
+                    scriptureText: word.scriptureText ?? "",
+                    scriptureVersion: word.scriptureVersion ?? "",
+                    scriptureAttribution: word.scriptureAttribution ?? "",
+                    verse: word.verse,
+                    question: word.question,
+                    readingUrl: "",
+                }),
+            )
+            .catch(() => {
+                if (!controller.signal.aborted) setDailyWordSaveError("이 날짜의 자동 말씀을 불러오지 못했어요.");
+            });
         return () => controller.abort();
     }, [dailyWordDate, dailyWords]);
 
@@ -235,7 +280,15 @@ export default function AdminSettingsPage() {
         const verse = dailyWordDraft.verse.trim();
         const question = dailyWordDraft.question.trim();
         const readingUrl = dailyWordDraft.readingUrl.trim();
-        if (!dailyWordDate || !reference || !scriptureText || !scriptureVersion || !scriptureAttribution || !verse || !question) {
+        if (
+            !dailyWordDate ||
+            !reference ||
+            !scriptureText ||
+            !scriptureVersion ||
+            !scriptureAttribution ||
+            !verse ||
+            !question
+        ) {
             setDailyWordSaveError("날짜, 말씀 위치, 성경 본문·번역본·출처, 묵상 한 줄, 질문을 모두 입력해 주세요.");
             return;
         }
@@ -246,8 +299,23 @@ export default function AdminSettingsPage() {
         setDailyWordSaving(true);
         setDailyWordSaveError("");
         try {
-            const saved = await api<DailyWord>(`/admin/daily-words/${dailyWordDate}`, json("PUT", { reference, scriptureText, scriptureVersion, scriptureAttribution, verse, question, readingUrl: readingUrl || null }));
-            setDailyWords((current) => [...current.filter((item) => item.date !== saved.date), saved].sort((a, b) => b.date.localeCompare(a.date)));
+            const saved = await api<DailyWord>(
+                `/admin/daily-words/${dailyWordDate}`,
+                json("PUT", {
+                    reference,
+                    scriptureText,
+                    scriptureVersion,
+                    scriptureAttribution,
+                    verse,
+                    question,
+                    readingUrl: readingUrl || null,
+                }),
+            );
+            setDailyWords((current) =>
+                [...current.filter((item) => item.date !== saved.date), saved].sort((a, b) =>
+                    b.date.localeCompare(a.date),
+                ),
+            );
             setToast(`${displayDate(saved.date)}의 말씀과 질문을 저장했어요.`);
         } catch {
             setDailyWordSaveError("저장하지 못했어요. 입력값과 서버 연결을 확인해 주세요.");
@@ -277,17 +345,25 @@ export default function AdminSettingsPage() {
         setManualError("");
         try {
             const [kind, rawId] = manualTarget.split(":");
-            const result = await api<{ delivered: number; failed: number }>("/admin/push/send", json("POST", {
-                title: manualPush.title.trim(), message: manualPush.message.trim(),
-                ...(kind === "notice" ? { noticeId: Number(rawId) } : { newsId: Number(rawId) }),
-            }));
+            const result = await api<{ delivered: number; failed: number }>(
+                "/admin/push/send",
+                json("POST", {
+                    title: manualPush.title.trim(),
+                    message: manualPush.message.trim(),
+                    ...(kind === "notice" ? { noticeId: Number(rawId) } : { newsId: Number(rawId) }),
+                }),
+            );
             setManualConfirm(false);
             setManualPush({ title: "", message: "" });
             setManualTarget("");
-            setToast(result.delivered > 0
-                ? `${result.delivered}개 기기에 알림을 보냈어요.${result.failed ? ` 실패 ${result.failed}개` : ""}`
-                : "알림이 전달된 기기가 없어요.");
-            void api<PushSettings>("/admin/push/settings").then(setPushSettings).catch(() => {});
+            setToast(
+                result.delivered > 0
+                    ? `${result.delivered}개 기기에 알림을 보냈어요.${result.failed ? ` 실패 ${result.failed}개` : ""}`
+                    : "알림이 전달된 기기가 없어요.",
+            );
+            void api<PushSettings>("/admin/push/settings")
+                .then(setPushSettings)
+                .catch(() => {});
         } catch {
             setManualError("알림을 보내지 못했어요. 연결한 게시글이 게시 중인지 확인해 주세요.");
         } finally {
@@ -303,9 +379,10 @@ export default function AdminSettingsPage() {
     const selectedNotice = notices.find((item) => item.id === selectedNoticeId) ?? null;
     const publishedNotices = notices.filter((item) => item.status === "published");
     const [manualTargetKind, manualTargetId] = manualTarget.split(":");
-    const manualTargetTitle = manualTargetKind === "notice"
-        ? publishedNotices.find((item) => item.id === Number(manualTargetId))?.title
-        : publishedNews.find((item) => item.id === Number(manualTargetId))?.title;
+    const manualTargetTitle =
+        manualTargetKind === "notice"
+            ? publishedNotices.find((item) => item.id === Number(manualTargetId))?.title
+            : publishedNews.find((item) => item.id === Number(manualTargetId))?.title;
     const selectedAdmin = admins.find((item) => item.id === selectedAdminId) ?? null;
     const visibleNotices = useMemo(
         () =>
@@ -344,7 +421,16 @@ export default function AdminSettingsPage() {
     }
     // 탭을 바꾼다. 저장하지 않은 변경이 있으면 나가기 확인을 먼저 띄운다.
     function startTab(next: Tab) {
-        const target: Step = next === "basic" ? "S01" : next === "admins" ? "S08" : next === "notices" ? "S16" : next === "push" ? "S45" : "S44";
+        const target: Step =
+            next === "basic"
+                ? "S01"
+                : next === "admins"
+                  ? "S08"
+                  : next === "notices"
+                    ? "S16"
+                    : next === "push"
+                      ? "S45"
+                      : "S44";
         if (step === "S02" || step === "S03") {
             if (basicDraft.name !== basic.name || basicDraft.intro !== basic.intro) {
                 setLeaveTo(target);
@@ -706,15 +792,23 @@ export default function AdminSettingsPage() {
                 </header>
                 <div className={common.content}>
                     <div className={common.heading}>
-                        <h1>{tab === "notices" ? "공지사항" : tab === "word" ? "날짜별 말씀" : tab === "push" ? "말씀 관리" : "운영 설정"}</h1>
+                        <h1>
+                            {tab === "notices"
+                                ? "공지사항"
+                                : tab === "word"
+                                  ? "날짜별 말씀"
+                                  : tab === "push"
+                                    ? "말씀 관리"
+                                    : "운영 설정"}
+                        </h1>
                         <p>
                             {tab === "notices"
                                 ? "공동체 공지를 작성하고 게시 상태를 관리합니다."
                                 : tab === "word"
-                                ? "날짜마다 말씀과 연결된 질문을 등록합니다."
-                                : tab === "push"
-                                ? "매일 말씀 알림 시간을 정하고 필요할 때 별도 알림을 보냅니다."
-                                : "공동체 정보와 운영 환경을 관리합니다."}
+                                  ? "날짜마다 말씀과 연결된 질문을 등록합니다."
+                                  : tab === "push"
+                                    ? "매일 말씀 알림 시간을 정하고 필요할 때 별도 알림을 보냅니다."
+                                    : "공동체 정보와 운영 환경을 관리합니다."}
                         </p>
                     </div>
                     <div className={styles.panel}>
@@ -756,104 +850,369 @@ export default function AdminSettingsPage() {
                             </button>
                         </nav>
                         <div className={styles.panelBody}>
-                            {step === "S45" && <section className={styles.section}>
-                                <h2>매일 말씀 푸시 알림</h2>
-                                <p className={styles.wordHelp}>알림을 허용한 승인 회원에게 매일 정해진 시간에 오늘의 말씀을 보냅니다. 모든 시간은 한국 시간 기준입니다.</p>
-                                {!pushSettings && !pushError && <p role="status">설정을 불러오는 중이에요.</p>}
-                                {pushSettings && <>
-                                    <PushTimePicker value={pushDraft.time}
-                                        onChange={(time) => setPushDraft((current) => ({ ...current, time }))} />
-                                    <label className={styles.field}>
-                                        <span>매일 알림 발송</span>
-                                        <span><input type="checkbox" checked={pushDraft.enabled} onChange={(event) => setPushDraft((current) => ({ ...current, enabled: event.target.checked }))} /> {pushDraft.enabled ? "켜짐" : "꺼짐"}</span>
-                                    </label>
-                                    <p className={styles.wordHelp}>알림을 허용한 기기 {pushSettings.subscribers}개 · {pushSettings.available ? "발송 준비 완료" : "서버 푸시 키 설정 필요"}</p>
-                                    <p className={styles.wordHelp}>서버가 꺼져 있거나 발송 시각을 10분 이상 지난 경우 그날 알림은 보내지 않습니다.</p>
-                                    <div className={styles.actions}>
-                                        <span>저장 후 다음 발송 시각부터 적용됩니다.</span>
-                                        <button className={common.primaryButton} type="button" disabled={pushSaving} onClick={() => { void savePushSettings(); }}>{pushSaving ? "저장 중..." : "알림 설정 저장"}</button>
-                                    </div>
-                                    <div className={styles.manualPush}>
-                                        <h3>별도 알림 보내기</h3>
-                                        <p>필요할 때 한 번만 발송합니다. 매일 말씀 알림이 꺼져 있어도 보낼 수 있어요.</p>
-                                        <label className={styles.field}>알림 제목
-                                            <input value={manualPush.title} maxLength={60} placeholder="예: 이번 주 청년부 안내"
-                                                onChange={(event) => { setManualPush((current) => ({ ...current, title: event.target.value })); setManualConfirm(false); }} />
-                                        </label>
-                                        <label className={styles.field}>알림 내용
-                                            <textarea value={manualPush.message} maxLength={200} rows={3} placeholder="알림에 표시할 내용을 입력해 주세요"
-                                                onChange={(event) => { setManualPush((current) => ({ ...current, message: event.target.value })); setManualConfirm(false); }} />
-                                        </label>
-                                        <label className={styles.field}>알림을 누르면 열 게시글
-                                            <select value={manualTarget} disabled={newsLoading || !!newsError} onChange={(event) => { setManualTarget(event.target.value); setManualConfirm(false); }}>
-                                                <option value="">연결할 공지 또는 소식을 선택해 주세요</option>
-                                                <optgroup label="공지사항">
-                                                    {publishedNotices.map((item) => <option key={`notice-${item.id}`} value={`notice:${item.id}`}>{item.title}</option>)}
-                                                </optgroup>
-                                                <optgroup label="교회 소식">
-                                                    {publishedNews.map((item) => <option key={`news-${item.id}`} value={`news:${item.id}`}>{item.title}</option>)}
-                                                </optgroup>
-                                            </select>
-                                        </label>
-                                        {newsLoading && <p className={styles.manualHint} role="status">게시된 공지와 소식을 불러오는 중이에요.</p>}
-                                        {newsError && <p className={common.error} role="alert">{newsError} 새로고침 후 다시 시도해 주세요.</p>}
-                                        {!newsLoading && !newsError && publishedNotices.length + publishedNews.length === 0 && <p className={styles.manualHint}>게시된 공지나 소식이 없어요. 먼저 게시글을 게시해 주세요.</p>}
-                                        <p className={styles.manualHint}>알림을 누르면 선택한 게시글로 이동합니다. 제목과 내용은 알림으로만 전송되며 게시글로 저장되지 않습니다.</p>
-                                        <p className={styles.manualHint}>받는 기기: {pushSettings.subscribers}개</p>
-                                        {manualError && <p className={common.error} role="alert">{manualError}</p>}
-                                        {manualConfirm ? <div className={styles.manualConfirm}>
-                                            <strong>이 내용으로 지금 발송할까요?</strong>
-                                            <p><b>{manualPush.title.trim()}</b><br />{manualPush.message.trim()}</p>
-                                            <p>연결 대상: {manualTargetKind === "notice" ? "공지사항" : "교회 소식"} · {manualTargetTitle}</p>
-                                            <div>
-                                                <button type="button" className={common.secondaryButton} onClick={() => setManualConfirm(false)} disabled={manualSending}>취소</button>
-                                                <button type="button" className={common.primaryButton} onClick={() => { void sendManualPush(); }} disabled={manualSending}>
-                                                    {manualSending ? "발송 중..." : `${pushSettings.subscribers}개 기기에 지금 발송`}
+                            {step === "S45" && (
+                                <section className={styles.section}>
+                                    <h2>매일 말씀 푸시 알림</h2>
+                                    <p className={styles.wordHelp}>
+                                        알림을 허용한 승인 회원에게 매일 정해진 시간에 오늘의 말씀을 보냅니다. 모든
+                                        시간은 한국 시간 기준입니다.
+                                    </p>
+                                    {!pushSettings && !pushError && <p role="status">설정을 불러오는 중이에요.</p>}
+                                    {pushSettings && (
+                                        <>
+                                            <PushTimePicker
+                                                value={pushDraft.time}
+                                                onChange={(time) => setPushDraft((current) => ({ ...current, time }))}
+                                            />
+                                            <label className={styles.field}>
+                                                <span>매일 알림 발송</span>
+                                                <span>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={pushDraft.enabled}
+                                                        onChange={(event) =>
+                                                            setPushDraft((current) => ({
+                                                                ...current,
+                                                                enabled: event.target.checked,
+                                                            }))
+                                                        }
+                                                    />{" "}
+                                                    {pushDraft.enabled ? "켜짐" : "꺼짐"}
+                                                </span>
+                                            </label>
+                                            <p className={styles.wordHelp}>
+                                                알림을 허용한 기기 {pushSettings.subscribers}개 ·{" "}
+                                                {pushSettings.available ? "발송 준비 완료" : "서버 푸시 키 설정 필요"}
+                                            </p>
+                                            <p className={styles.wordHelp}>
+                                                서버가 꺼져 있거나 발송 시각을 10분 이상 지난 경우 그날 알림은 보내지
+                                                않습니다.
+                                            </p>
+                                            <div className={styles.actions}>
+                                                <span>저장 후 다음 발송 시각부터 적용됩니다.</span>
+                                                <button
+                                                    className={common.primaryButton}
+                                                    type="button"
+                                                    disabled={pushSaving}
+                                                    onClick={() => {
+                                                        void savePushSettings();
+                                                    }}
+                                                >
+                                                    {pushSaving ? "저장 중..." : "알림 설정 저장"}
                                                 </button>
                                             </div>
-                                        </div> : <button type="button" className={common.primaryButton}
-                                            disabled={!pushSettings.available || !pushSettings.subscribers || !manualPush.title.trim() || !manualPush.message.trim() || !manualTargetTitle}
-                                            onClick={() => { setManualError(""); setManualConfirm(true); }}>발송 내용 확인</button>}
+                                            <div className={styles.manualPush}>
+                                                <h3>별도 알림 보내기</h3>
+                                                <p>
+                                                    필요할 때 한 번만 발송합니다. 매일 말씀 알림이 꺼져 있어도 보낼 수
+                                                    있어요.
+                                                </p>
+                                                <label className={styles.field}>
+                                                    알림 제목
+                                                    <input
+                                                        value={manualPush.title}
+                                                        maxLength={60}
+                                                        placeholder="예: 이번 주 청년부 안내"
+                                                        onChange={(event) => {
+                                                            setManualPush((current) => ({
+                                                                ...current,
+                                                                title: event.target.value,
+                                                            }));
+                                                            setManualConfirm(false);
+                                                        }}
+                                                    />
+                                                </label>
+                                                <label className={styles.field}>
+                                                    알림 내용
+                                                    <textarea
+                                                        value={manualPush.message}
+                                                        maxLength={200}
+                                                        rows={3}
+                                                        placeholder="알림에 표시할 내용을 입력해 주세요"
+                                                        onChange={(event) => {
+                                                            setManualPush((current) => ({
+                                                                ...current,
+                                                                message: event.target.value,
+                                                            }));
+                                                            setManualConfirm(false);
+                                                        }}
+                                                    />
+                                                </label>
+                                                <label className={styles.field}>
+                                                    알림을 누르면 열 게시글
+                                                    <select
+                                                        value={manualTarget}
+                                                        disabled={newsLoading || !!newsError}
+                                                        onChange={(event) => {
+                                                            setManualTarget(event.target.value);
+                                                            setManualConfirm(false);
+                                                        }}
+                                                    >
+                                                        <option value="">연결할 공지 또는 소식을 선택해 주세요</option>
+                                                        <optgroup label="공지사항">
+                                                            {publishedNotices.map((item) => (
+                                                                <option
+                                                                    key={`notice-${item.id}`}
+                                                                    value={`notice:${item.id}`}
+                                                                >
+                                                                    {item.title}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                        <optgroup label="교회 소식">
+                                                            {publishedNews.map((item) => (
+                                                                <option
+                                                                    key={`news-${item.id}`}
+                                                                    value={`news:${item.id}`}
+                                                                >
+                                                                    {item.title}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    </select>
+                                                </label>
+                                                {newsLoading && (
+                                                    <p className={styles.manualHint} role="status">
+                                                        게시된 공지와 소식을 불러오는 중이에요.
+                                                    </p>
+                                                )}
+                                                {newsError && (
+                                                    <p className={common.error} role="alert">
+                                                        {newsError} 새로고침 후 다시 시도해 주세요.
+                                                    </p>
+                                                )}
+                                                {!newsLoading &&
+                                                    !newsError &&
+                                                    publishedNotices.length + publishedNews.length === 0 && (
+                                                        <p className={styles.manualHint}>
+                                                            게시된 공지나 소식이 없어요. 먼저 게시글을 게시해 주세요.
+                                                        </p>
+                                                    )}
+                                                <p className={styles.manualHint}>
+                                                    알림을 누르면 선택한 게시글로 이동합니다. 제목과 내용은 알림으로만
+                                                    전송되며 게시글로 저장되지 않습니다.
+                                                </p>
+                                                <p className={styles.manualHint}>
+                                                    받는 기기: {pushSettings.subscribers}개
+                                                </p>
+                                                {manualError && (
+                                                    <p className={common.error} role="alert">
+                                                        {manualError}
+                                                    </p>
+                                                )}
+                                                {manualConfirm ? (
+                                                    <div className={styles.manualConfirm}>
+                                                        <strong>이 내용으로 지금 발송할까요?</strong>
+                                                        <p>
+                                                            <b>{manualPush.title.trim()}</b>
+                                                            <br />
+                                                            {manualPush.message.trim()}
+                                                        </p>
+                                                        <p>
+                                                            연결 대상:{" "}
+                                                            {manualTargetKind === "notice" ? "공지사항" : "교회 소식"} ·{" "}
+                                                            {manualTargetTitle}
+                                                        </p>
+                                                        <div>
+                                                            <button
+                                                                type="button"
+                                                                className={common.secondaryButton}
+                                                                onClick={() => setManualConfirm(false)}
+                                                                disabled={manualSending}
+                                                            >
+                                                                취소
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className={common.primaryButton}
+                                                                onClick={() => {
+                                                                    void sendManualPush();
+                                                                }}
+                                                                disabled={manualSending}
+                                                            >
+                                                                {manualSending
+                                                                    ? "발송 중..."
+                                                                    : `${pushSettings.subscribers}개 기기에 지금 발송`}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        className={common.primaryButton}
+                                                        disabled={
+                                                            !pushSettings.available ||
+                                                            !pushSettings.subscribers ||
+                                                            !manualPush.title.trim() ||
+                                                            !manualPush.message.trim() ||
+                                                            !manualTargetTitle
+                                                        }
+                                                        onClick={() => {
+                                                            setManualError("");
+                                                            setManualConfirm(true);
+                                                        }}
+                                                    >
+                                                        발송 내용 확인
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                    {pushError && (
+                                        <p className={common.error} role="alert">
+                                            {pushError}
+                                        </p>
+                                    )}
+                                </section>
+                            )}
+                            {step === "S44" && (
+                                <section className={styles.section}>
+                                    <h2>말씀과 질문</h2>
+                                    <p className={styles.wordHelp}>
+                                        30일 말씀·질문 순환표가 한국 시간 자정에 자동으로 바뀝니다. 날짜별로 저장하면
+                                        해당 날짜에는 저장한 내용이 우선 표시됩니다.
+                                    </p>
+                                    {dailyWordsLoading && <p role="status">등록된 말씀을 불러오는 중이에요.</p>}
+                                    {dailyWordsError && <p role="alert">{dailyWordsError}</p>}
+                                    {!dailyWordsLoading && !dailyWordsError && (
+                                        <p className={styles.wordHelp}>
+                                            직접 지정한 날짜 {dailyWords.length}개 ·{" "}
+                                            {dailyWords.some((item) => item.date === dailyWordDate)
+                                                ? "선택한 날짜는 직접 지정한 내용입니다."
+                                                : "선택한 날짜는 자동 순환표를 사용합니다."}
+                                        </p>
+                                    )}
+                                    <label className={styles.field}>
+                                        날짜
+                                        <input
+                                            type="date"
+                                            value={dailyWordDate}
+                                            onChange={(event) => setDailyWordDate(event.target.value)}
+                                        />
+                                    </label>
+                                    <label className={styles.field}>
+                                        말씀 위치
+                                        <input
+                                            value={dailyWordDraft.reference}
+                                            maxLength={100}
+                                            placeholder="예: 히브리서 13:1"
+                                            onChange={(event) =>
+                                                setDailyWordDraft((current) => ({
+                                                    ...current,
+                                                    reference: event.target.value,
+                                                    readingUrl: "",
+                                                }))
+                                            }
+                                        />
+                                    </label>
+                                    <label className={styles.field}>
+                                        성경 구절 본문
+                                        <textarea
+                                            value={dailyWordDraft.scriptureText}
+                                            rows={5}
+                                            maxLength={2000}
+                                            placeholder="선택한 말씀 위치의 성경 구절을 입력해 주세요"
+                                            onChange={(event) =>
+                                                setDailyWordDraft((current) => ({
+                                                    ...current,
+                                                    scriptureText: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </label>
+                                    <label className={styles.field}>
+                                        성경 번역본
+                                        <input
+                                            value={dailyWordDraft.scriptureVersion}
+                                            maxLength={50}
+                                            placeholder="예: 개역한글판"
+                                            onChange={(event) =>
+                                                setDailyWordDraft((current) => ({
+                                                    ...current,
+                                                    scriptureVersion: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </label>
+                                    <label className={styles.field}>
+                                        본문 출처·저작권 표시
+                                        <input
+                                            value={dailyWordDraft.scriptureAttribution}
+                                            maxLength={100}
+                                            placeholder="예: 대한성서공회"
+                                            onChange={(event) =>
+                                                setDailyWordDraft((current) => ({
+                                                    ...current,
+                                                    scriptureAttribution: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </label>
+                                    <label className={styles.field}>
+                                        묵상 한 줄 (성경 본문 인용 아님)
+                                        <textarea
+                                            value={dailyWordDraft.verse}
+                                            rows={4}
+                                            maxLength={500}
+                                            placeholder="청년부에 보여줄 짧은 말씀 문구"
+                                            onChange={(event) =>
+                                                setDailyWordDraft((current) => ({
+                                                    ...current,
+                                                    verse: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </label>
+                                    <label className={styles.field}>
+                                        오늘의 질문
+                                        <textarea
+                                            value={dailyWordDraft.question}
+                                            rows={3}
+                                            maxLength={300}
+                                            placeholder="이 말씀을 읽고 함께 생각할 질문"
+                                            onChange={(event) =>
+                                                setDailyWordDraft((current) => ({
+                                                    ...current,
+                                                    question: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </label>
+                                    <label className={styles.field}>
+                                        대한성서공회 본문 링크 (선택 · 빈칸이면 자동 연결)
+                                        <input
+                                            type="url"
+                                            value={dailyWordDraft.readingUrl}
+                                            maxLength={500}
+                                            placeholder="https://bible.bskorea.or.kr/bible/NKRV/HEB.13"
+                                            onChange={(event) =>
+                                                setDailyWordDraft((current) => ({
+                                                    ...current,
+                                                    readingUrl: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </label>
+                                    {dailyWordSaveError && (
+                                        <p className={common.error} role="alert">
+                                            {dailyWordSaveError}
+                                        </p>
+                                    )}
+                                    <div className={styles.actions}>
+                                        <span>저장하면 해당 날짜의 화면에 바로 반영됩니다.</span>
+                                        <button
+                                            className={common.primaryButton}
+                                            type="button"
+                                            disabled={dailyWordSaving}
+                                            onClick={() => {
+                                                void saveDailyWord();
+                                            }}
+                                        >
+                                            {dailyWordSaving ? "저장 중..." : "말씀과 질문 저장"}
+                                        </button>
                                     </div>
-                                </>}
-                                {pushError && <p className={common.error} role="alert">{pushError}</p>}
-                            </section>}
-                            {step === "S44" && <section className={styles.section}>
-                                <h2>말씀과 질문</h2>
-                                <p className={styles.wordHelp}>30일 말씀·질문 순환표가 한국 시간 자정에 자동으로 바뀝니다. 날짜별로 저장하면 해당 날짜에는 저장한 내용이 우선 표시됩니다.</p>
-                                {dailyWordsLoading && <p role="status">등록된 말씀을 불러오는 중이에요.</p>}
-                                {dailyWordsError && <p role="alert">{dailyWordsError}</p>}
-                                {!dailyWordsLoading && !dailyWordsError && <p className={styles.wordHelp}>직접 지정한 날짜 {dailyWords.length}개 · {dailyWords.some((item) => item.date === dailyWordDate) ? "선택한 날짜는 직접 지정한 내용입니다." : "선택한 날짜는 자동 순환표를 사용합니다."}</p>}
-                                <label className={styles.field}>날짜
-                                    <input type="date" value={dailyWordDate} onChange={(event) => setDailyWordDate(event.target.value)} />
-                                </label>
-                                <label className={styles.field}>말씀 위치
-                                    <input value={dailyWordDraft.reference} maxLength={100} placeholder="예: 히브리서 13:1" onChange={(event) => setDailyWordDraft((current) => ({ ...current, reference: event.target.value, readingUrl: "" }))} />
-                                </label>
-                                <label className={styles.field}>성경 구절 본문
-                                    <textarea value={dailyWordDraft.scriptureText} rows={5} maxLength={2000} placeholder="선택한 말씀 위치의 성경 구절을 입력해 주세요" onChange={(event) => setDailyWordDraft((current) => ({ ...current, scriptureText: event.target.value }))} />
-                                </label>
-                                <label className={styles.field}>성경 번역본
-                                    <input value={dailyWordDraft.scriptureVersion} maxLength={50} placeholder="예: 개역한글판" onChange={(event) => setDailyWordDraft((current) => ({ ...current, scriptureVersion: event.target.value }))} />
-                                </label>
-                                <label className={styles.field}>본문 출처·저작권 표시
-                                    <input value={dailyWordDraft.scriptureAttribution} maxLength={100} placeholder="예: 대한성서공회" onChange={(event) => setDailyWordDraft((current) => ({ ...current, scriptureAttribution: event.target.value }))} />
-                                </label>
-                                <label className={styles.field}>묵상 한 줄 (성경 본문 인용 아님)
-                                    <textarea value={dailyWordDraft.verse} rows={4} maxLength={500} placeholder="청년부에 보여줄 짧은 말씀 문구" onChange={(event) => setDailyWordDraft((current) => ({ ...current, verse: event.target.value }))} />
-                                </label>
-                                <label className={styles.field}>오늘의 질문
-                                    <textarea value={dailyWordDraft.question} rows={3} maxLength={300} placeholder="이 말씀을 읽고 함께 생각할 질문" onChange={(event) => setDailyWordDraft((current) => ({ ...current, question: event.target.value }))} />
-                                </label>
-                                <label className={styles.field}>대한성서공회 본문 링크 (선택 · 빈칸이면 자동 연결)
-                                    <input type="url" value={dailyWordDraft.readingUrl} maxLength={500} placeholder="https://bible.bskorea.or.kr/bible/NKRV/HEB.13" onChange={(event) => setDailyWordDraft((current) => ({ ...current, readingUrl: event.target.value }))} />
-                                </label>
-                                {dailyWordSaveError && <p className={common.error} role="alert">{dailyWordSaveError}</p>}
-                                <div className={styles.actions}>
-                                    <span>저장하면 해당 날짜의 화면에 바로 반영됩니다.</span>
-                                    <button className={common.primaryButton} type="button" disabled={dailyWordSaving} onClick={() => { void saveDailyWord(); }}>{dailyWordSaving ? "저장 중..." : "말씀과 질문 저장"}</button>
-                                </div>
-                            </section>}
+                                </section>
+                            )}
                             {step === "S01" && (
                                 <section className={styles.section}>
                                     <h2>공동체 기본정보</h2>

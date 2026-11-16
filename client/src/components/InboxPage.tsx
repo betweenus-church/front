@@ -27,13 +27,22 @@ const kindLabels: Record<InboxItem["kind"], string> = {
 // 알림 링크가 앱 안의 허용된 주소일 때만 쓰고, 아니면 홈으로 보낸다.
 function itemUrl(url: string) {
     // The API supplies paths, never arbitrary external URLs or auth routes.
-    return /^\/community\/(?:home|word|photos|prayer|news|notices|inbox|me)(?:[/?#]|$)/.test(url) ? url : "/community/home";
+    return /^\/community\/(?:home|word|photos|prayer|news|notices|inbox|me)(?:[/?#]|$)/.test(url)
+        ? url
+        : "/community/home";
 }
 
 // 알림 시각을 '11월 9일 오후 3:00' 형태로 바꾼다.
 function dateLabel(value: string) {
     const date = new Date(value);
-    return Number.isNaN(date.valueOf()) ? "" : new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", hour: "numeric", minute: "2-digit" }).format(date);
+    return Number.isNaN(date.valueOf())
+        ? ""
+        : new Intl.DateTimeFormat("ko-KR", {
+              month: "long",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+          }).format(date);
 }
 
 // 알림함 화면. 알림 목록, 읽음 처리, 모두 읽음을 제공한다.
@@ -56,11 +65,15 @@ export default function InboxPage({ onUnreadChange }: { onUnreadChange: (count: 
             onUnreadChange(result.unreadCount);
             setStatus("ready");
         } catch (error) {
-            setStatus(error instanceof ApiError && (error.status === 401 || error.status === 403) ? "unauthorized" : "error");
+            setStatus(
+                error instanceof ApiError && (error.status === 401 || error.status === 403) ? "unauthorized" : "error",
+            );
         }
     }
 
-    useEffect(() => { void load(); }, []);
+    useEffect(() => {
+        void load();
+    }, []);
 
     // 알림을 누르면 읽음 처리한 뒤 해당 화면으로 이동한다.
     async function openItem(item: InboxItem) {
@@ -70,7 +83,9 @@ export default function InboxPage({ onUnreadChange }: { onUnreadChange: (count: 
         if (!item.readAt) {
             try {
                 const result = await api<{ readAt: string }>(`/inbox/${item.id}/read`, { method: "POST" });
-                setItems((current) => current.map((entry) => entry.id === item.id ? { ...entry, readAt: result.readAt } : entry));
+                setItems((current) =>
+                    current.map((entry) => (entry.id === item.id ? { ...entry, readAt: result.readAt } : entry)),
+                );
                 const next = Math.max(0, unreadCount - 1);
                 setUnreadCount(next);
                 onUnreadChange(next);
@@ -100,24 +115,65 @@ export default function InboxPage({ onUnreadChange }: { onUnreadChange: (count: 
         }
     }
 
-    return <section className={`section-page ${styles.page}`}>
-        <div className="eyebrow">나에게 도착한 이야기</div>
-        <div className={styles.heading}>
-            <h1>내 소식함</h1>
-            {status === "ready" && unreadCount > 0 && <button type="button" onClick={() => void readAll()} disabled={allBusy}>{allBusy ? "처리 중…" : "모두 읽음"}</button>}
-        </div>
-        {status === "loading" && <p className={styles.state} role="status">소식을 불러오는 중이에요.</p>}
-        {status === "error" && <div className={styles.state} role="alert">소식을 불러오지 못했어요.<button type="button" onClick={() => void load()}>다시 시도</button></div>}
-        {status === "unauthorized" && <p className={styles.state}>가입 승인 후 내 소식을 볼 수 있어요.</p>}
-        {actionError && <p className={styles.error} role="alert">{actionError}</p>}
-        {status === "ready" && (items.length === 0
-            ? <p className={styles.state}>아직 도착한 소식이 없어요.</p>
-            : <ul className={styles.list}>{items.map((item) => <li key={item.id}>
-                <button type="button" className={`${styles.item} ${!item.readAt ? styles.unread : ""}`} disabled={busyId === item.id} onClick={() => void openItem(item)}>
-                    <span className={styles.meta}>{kindLabels[item.kind]} · <time dateTime={item.createdAt}>{dateLabel(item.createdAt)}</time>{!item.readAt && <span className={styles.dot} aria-label="읽지 않음" />}</span>
-                    <strong>{item.title}</strong>
-                    <span className={`${styles.body} ${item.kind === "announcement" ? styles.bodyFull : ""}`}>{item.body}</span>
-                </button>
-            </li>)}</ul>)}
-    </section>;
+    return (
+        <section className={`section-page ${styles.page}`}>
+            <div className="eyebrow">나에게 도착한 이야기</div>
+            <div className={styles.heading}>
+                <h1>내 소식함</h1>
+                {status === "ready" && unreadCount > 0 && (
+                    <button type="button" onClick={() => void readAll()} disabled={allBusy}>
+                        {allBusy ? "처리 중…" : "모두 읽음"}
+                    </button>
+                )}
+            </div>
+            {status === "loading" && (
+                <p className={styles.state} role="status">
+                    소식을 불러오는 중이에요.
+                </p>
+            )}
+            {status === "error" && (
+                <div className={styles.state} role="alert">
+                    소식을 불러오지 못했어요.
+                    <button type="button" onClick={() => void load()}>
+                        다시 시도
+                    </button>
+                </div>
+            )}
+            {status === "unauthorized" && <p className={styles.state}>가입 승인 후 내 소식을 볼 수 있어요.</p>}
+            {actionError && (
+                <p className={styles.error} role="alert">
+                    {actionError}
+                </p>
+            )}
+            {status === "ready" &&
+                (items.length === 0 ? (
+                    <p className={styles.state}>아직 도착한 소식이 없어요.</p>
+                ) : (
+                    <ul className={styles.list}>
+                        {items.map((item) => (
+                            <li key={item.id}>
+                                <button
+                                    type="button"
+                                    className={`${styles.item} ${!item.readAt ? styles.unread : ""}`}
+                                    disabled={busyId === item.id}
+                                    onClick={() => void openItem(item)}
+                                >
+                                    <span className={styles.meta}>
+                                        {kindLabels[item.kind]} ·{" "}
+                                        <time dateTime={item.createdAt}>{dateLabel(item.createdAt)}</time>
+                                        {!item.readAt && <span className={styles.dot} aria-label="읽지 않음" />}
+                                    </span>
+                                    <strong>{item.title}</strong>
+                                    <span
+                                        className={`${styles.body} ${item.kind === "announcement" ? styles.bodyFull : ""}`}
+                                    >
+                                        {item.body}
+                                    </span>
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                ))}
+        </section>
+    );
 }

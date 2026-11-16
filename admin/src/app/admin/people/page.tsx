@@ -12,20 +12,7 @@ import { useAdminCounts } from "../use-admin-counts";
 import AdminNewsIcon from "../../../components/AdminNewsIcon";
 
 type Step =
-    | "M01"
-    | "M02"
-    | "M03"
-    | "M04"
-    | "M05"
-    | "M06"
-    | "M07"
-    | "M08"
-    | "M09"
-    | "M10"
-    | "M11"
-    | "M12"
-    | "M13"
-    | "M14";
+    "M01" | "M02" | "M03" | "M04" | "M05" | "M06" | "M07" | "M08" | "M09" | "M10" | "M11" | "M12" | "M13" | "M14";
 type Status = "active" | "pending" | "limited";
 type Filter = "all" | "pending" | "limited";
 type Action = "edit" | "restrict" | "unrestrict";
@@ -40,9 +27,22 @@ type Member = {
 };
 type Draft = Pick<Member, "name" | "phone" | "church">;
 
-type ApiMember = { id: number; name: string; phone: string; church: string; status: "approved" | "suspended"; joined: string; restrictionReason: string | null };
+type ApiMember = {
+    id: number;
+    name: string;
+    phone: string;
+    church: string;
+    status: "approved" | "suspended";
+    joined: string;
+    restrictionReason: string | null;
+};
 // 서버의 회원 데이터를 화면용 형태로 바꾼다.
-const toMember = (item: ApiMember): Member => ({ ...item, status: item.status === "approved" ? "active" : "limited", joined: new Date(item.joined).toLocaleDateString("ko-KR"), restrictionReason: item.restrictionReason ?? undefined });
+const toMember = (item: ApiMember): Member => ({
+    ...item,
+    status: item.status === "approved" ? "active" : "limited",
+    joined: new Date(item.joined).toLocaleDateString("ko-KR"),
+    restrictionReason: item.restrictionReason ?? undefined,
+});
 const statusLabel: Record<Status, string> = { active: "활동", pending: "승인 대기", limited: "이용 제한" };
 // 전화번호를 010-1234-5678 형태로 바꾼다.
 const formatPhone = (value: string) => {
@@ -122,7 +122,11 @@ export default function AdminPeoplePage() {
     const [resetError, setResetError] = useState("");
     const reasonRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => { void api<ApiMember[]>("/admin/members").then((items) => setMembers(items.map(toMember))).catch(() => setNotice("구성원 목록을 불러오지 못했어요.")); }, []);
+    useEffect(() => {
+        void api<ApiMember[]>("/admin/members")
+            .then((items) => setMembers(items.map(toMember)))
+            .catch(() => setNotice("구성원 목록을 불러오지 못했어요."));
+    }, []);
     useEffect(() => {
         if (["M07", "M08", "M12", "M13"].includes(step)) reasonRef.current?.focus();
     }, [step]);
@@ -170,14 +174,21 @@ export default function AdminPeoplePage() {
         setBusy(true);
         setResetError("");
         try {
-            const result = await api<{ password: string }>(`/admin/members/${selected.id}/reset-password`, json("POST"));
+            const result = await api<{ password: string }>(
+                `/admin/members/${selected.id}/reset-password`,
+                json("POST"),
+            );
             setTemporaryPassword(result.password);
             setResetConfirm(false);
         } catch (error) {
-            setResetError(error instanceof ApiError && error.status === 403
-                ? "주 운영자만 임시 비밀번호를 발급할 수 있어요."
-                : "임시 비밀번호를 발급하지 못했어요. 다시 시도해 주세요.");
-        } finally { setBusy(false); }
+            setResetError(
+                error instanceof ApiError && error.status === 403
+                    ? "주 운영자만 임시 비밀번호를 발급할 수 있어요."
+                    : "임시 비밀번호를 발급하지 못했어요. 다시 시도해 주세요.",
+            );
+        } finally {
+            setBusy(false);
+        }
     }
     // 회원 정보 수정 화면을 연다.
     function startEdit() {
@@ -202,12 +213,23 @@ export default function AdminPeoplePage() {
         setFailedAction(action);
         setBusy(true);
         try {
-            if (action === "edit") await api(`/admin/members/${id}`, json("PATCH", { ...draft, name: draft.name.trim(), church: draft.church.trim() }));
-            else await api(`/admin/members/${id}/status`, json("PATCH", { status: action === "restrict" ? "suspended" : "approved", reason: reason.trim() }));
+            if (action === "edit")
+                await api(
+                    `/admin/members/${id}`,
+                    json("PATCH", { ...draft, name: draft.name.trim(), church: draft.church.trim() }),
+                );
+            else
+                await api(
+                    `/admin/members/${id}/status`,
+                    json("PATCH", { status: action === "restrict" ? "suspended" : "approved", reason: reason.trim() }),
+                );
             setMembers((await api<ApiMember[]>("/admin/members")).map(toMember));
             setStep(action === "edit" ? "M05" : action === "restrict" ? "M09" : "M14");
-        } catch { setStep(action === "edit" ? "M06" : "M10"); }
-        finally { setBusy(false); }
+        } catch {
+            setStep(action === "edit" ? "M06" : "M10");
+        } finally {
+            setBusy(false);
+        }
     }
     // 이용 제한 또는 제한 해제 사유 입력을 시작한다.
     function startRestriction(action: "restrict" | "unrestrict") {
@@ -585,27 +607,65 @@ export default function AdminPeoplePage() {
                                         </div>
                                         {!editing && (
                                             <div className={styles.passwordReset}>
-                                                <button className={common.secondaryButton} type="button"
-                                                    onClick={() => { setResetConfirm(true); setTemporaryPassword(""); setResetError(""); }}>
+                                                <button
+                                                    className={common.secondaryButton}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setResetConfirm(true);
+                                                        setTemporaryPassword("");
+                                                        setResetError("");
+                                                    }}
+                                                >
                                                     로그인 비밀번호 재설정
                                                 </button>
                                                 {resetConfirm && (
                                                     <div role="group" aria-label="비밀번호 재설정 확인">
-                                                        <p>기존 로그인 세션이 종료됩니다. {selected.name}님에게 새 비밀번호를 안전하게 전달해 주세요.</p>
-                                                        <button className={common.primaryButton} type="button" disabled={busy}
-                                                            onClick={() => { void resetLoginPassword(); }}>임시 비밀번호 발급</button>
-                                                        <button className={common.secondaryButton} type="button" onClick={() => setResetConfirm(false)}>취소</button>
+                                                        <p>
+                                                            기존 로그인 세션이 종료됩니다. {selected.name}님에게 새
+                                                            비밀번호를 안전하게 전달해 주세요.
+                                                        </p>
+                                                        <button
+                                                            className={common.primaryButton}
+                                                            type="button"
+                                                            disabled={busy}
+                                                            onClick={() => {
+                                                                void resetLoginPassword();
+                                                            }}
+                                                        >
+                                                            임시 비밀번호 발급
+                                                        </button>
+                                                        <button
+                                                            className={common.secondaryButton}
+                                                            type="button"
+                                                            onClick={() => setResetConfirm(false)}
+                                                        >
+                                                            취소
+                                                        </button>
                                                     </div>
                                                 )}
                                                 {temporaryPassword && (
                                                     <div role="status">
-                                                        <p>임시 비밀번호는 지금만 표시돼요. 회원에게 직접 전달해 주세요.</p>
-                                                        <code className={styles.temporaryPassword}>{temporaryPassword}</code>
-                                                        <button className={common.secondaryButton} type="button"
-                                                            onClick={() => setTemporaryPassword("")}>확인 후 닫기</button>
+                                                        <p>
+                                                            임시 비밀번호는 지금만 표시돼요. 회원에게 직접 전달해
+                                                            주세요.
+                                                        </p>
+                                                        <code className={styles.temporaryPassword}>
+                                                            {temporaryPassword}
+                                                        </code>
+                                                        <button
+                                                            className={common.secondaryButton}
+                                                            type="button"
+                                                            onClick={() => setTemporaryPassword("")}
+                                                        >
+                                                            확인 후 닫기
+                                                        </button>
                                                     </div>
                                                 )}
-                                                {resetError && <p className={styles.fieldError} role="alert">{resetError}</p>}
+                                                {resetError && (
+                                                    <p className={styles.fieldError} role="alert">
+                                                        {resetError}
+                                                    </p>
+                                                )}
                                             </div>
                                         )}
                                     </div>

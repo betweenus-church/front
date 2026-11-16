@@ -584,18 +584,71 @@ textarea::placeholder {
 .home-notice {
     margin-top: var(--space-lg);
 }
-.home-notice > span { color: var(--green); font-size: var(--text-xs); font-weight: 700; }
-.home-notice h2 { margin: var(--space-xs) 0; font-size: 17px; }
-.home-notice p { margin: 0; white-space: pre-wrap; line-height: 1.6; }
-.home-notice-link { display: inline-flex; align-items: center; gap: var(--space-2xs); margin-top: var(--space-md); color: var(--green); font-size: var(--text-xs); font-weight: 700; text-decoration: none; }
-.home-notice-link svg { width: 15px; height: 15px; }
-.home-section-heading a { display: inline-flex; align-items: center; gap: var(--space-2xs); padding: var(--space-xs) 0; color: var(--green); font-size: var(--text-xs); font-weight: 600; text-decoration: none; }
-.home-section-heading a svg { width: 15px; height: 15px; }
-.home-news-card { position: relative; display: grid; color: var(--ink); text-decoration: none; }
-.home-news-card:hover { border-color: var(--color-field-edge); }
-.home-news-card strong { overflow-wrap: anywhere; }
-.home-news-card span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.home-news-card > svg { position: absolute; top: 50%; transform: translateY(-50%); }
+.home-notice > span {
+    color: var(--green);
+    font-size: var(--text-xs);
+    font-weight: 700;
+}
+.home-notice h2 {
+    margin: var(--space-xs) 0;
+    font-size: 17px;
+}
+.home-notice p {
+    margin: 0;
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+.home-notice-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    margin-top: var(--space-md);
+    color: var(--green);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-decoration: none;
+}
+.home-notice-link svg {
+    width: 15px;
+    height: 15px;
+}
+.home-section-heading a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    padding: var(--space-xs) 0;
+    color: var(--green);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-decoration: none;
+}
+.home-section-heading a svg {
+    width: 15px;
+    height: 15px;
+}
+.home-news-card {
+    position: relative;
+    display: grid;
+    color: var(--ink);
+    text-decoration: none;
+}
+.home-news-card:hover {
+    border-color: var(--color-field-edge);
+}
+.home-news-card strong {
+    overflow-wrap: anywhere;
+}
+.home-news-card span {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+.home-news-card > svg {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
 .word-date-nav {
     position: relative;
     display: flex;
@@ -614,14 +667,16 @@ textarea::placeholder {
     font: inherit;
     font-size: 24px;
     cursor: pointer;
-    transition: background .15s ease, border-color .15s ease;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
 }
 .word-date-nav > button:not(:disabled):hover {
     border-color: var(--green);
     background: var(--green-pale);
 }
 .word-date-nav > button:disabled {
-    opacity: .4;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 .word-date-picker {
@@ -663,7 +718,7 @@ textarea::placeholder {
     height: 18px;
     flex: none;
     color: var(--muted);
-    transition: transform .15s ease;
+    transition: transform 0.15s ease;
 }
 .word-date-trigger[aria-expanded="true"] .word-date-chevron {
     transform: rotate(180deg);
@@ -911,7 +966,10 @@ textarea::placeholder {
     font-weight: 600;
     line-height: 1.5;
 }
-.photo-copy p a { color: inherit; text-decoration: none; }
+.photo-copy p a {
+    color: inherit;
+    text-decoration: none;
+}
 .more-button {
     display: grid;
     width: 38px;
@@ -1103,7 +1161,9 @@ textarea::placeholder {
     cursor: pointer;
     font-size: var(--text-xs);
 }
-.profile-photo-actions button:disabled { opacity: .5;     cursor: not-allowed;
+.profile-photo-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 .settings-list {
     overflow: hidden;

@@ -25,10 +25,28 @@ export default function SplashPage() {
                 setError(apiError);
                 return;
             }
-            router.replace(mustChangePassword ? "/change-password" : status === "approved" ? "/community/home" : status === "none" ? "/start" : "/pending");
+            router.replace(
+                mustChangePassword
+                    ? "/change-password"
+                    : status === "approved"
+                      ? "/community/home"
+                      : status === "none"
+                        ? "/start"
+                        : "/pending",
+            );
         })();
-        return () => { active = false; };
+        return () => {
+            active = false;
+        };
     }, [attempt, router, syncSession]);
 
-    return <SplashScreen error={error} onRetry={() => { setError(""); setAttempt((current) => current + 1); }} />;
+    return (
+        <SplashScreen
+            error={error}
+            onRetry={() => {
+                setError("");
+                setAttempt((current) => current + 1);
+            }}
+        />
+    );
 }

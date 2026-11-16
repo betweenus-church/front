@@ -8,22 +8,56 @@ import MemberAvatar from "./MemberAvatar";
 
 // 뒤로 가기 아이콘.
 function BackIcon() {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>;
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="m15 18-6-6 6-6" />
+        </svg>
+    );
 }
 
 // 더보기(…) 아이콘.
 function MoreIcon() {
-    return <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg>;
+    return (
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <circle cx="5" cy="12" r="1.5" />
+            <circle cx="12" cy="12" r="1.5" />
+            <circle cx="19" cy="12" r="1.5" />
+        </svg>
+    );
 }
 
 // 좋아요 하트 아이콘. filled면 채워진 하트로 그린다.
 function HeartIcon({ filled }: { filled: boolean }) {
-    return <svg viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.8 8.5c0 4.1-5.2 8.6-8.8 11.2C8.4 17.1 3.2 12.6 3.2 8.5a4.8 4.8 0 0 1 8.8-2.6 4.8 4.8 0 0 1 8.8 2.6Z" /></svg>;
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill={filled ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M20.8 8.5c0 4.1-5.2 8.6-8.8 11.2C8.4 17.1 3.2 12.6 3.2 8.5a4.8 4.8 0 0 1 8.8-2.6 4.8 4.8 0 0 1 8.8 2.6Z" />
+        </svg>
+    );
 }
 
 // 댓글 보내기 아이콘.
 function SendIcon() {
-    return <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.9 3.7a1 1 0 0 0-1.1-.2L3.7 10.3a1 1 0 0 0 .1 1.9l6.5 2 2 6.5a1 1 0 0 0 1.9.1l6.8-16.1a1 1 0 0 0-.1-1Zm-7.3 13.6-1.3-4.2a1 1 0 0 0-.7-.7l-4.2-1.3 10.5-4.4-4.3 10.6Z" /></svg>;
+    return (
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.9 3.7a1 1 0 0 0-1.1-.2L3.7 10.3a1 1 0 0 0 .1 1.9l6.5 2 2 6.5a1 1 0 0 0 1.9.1l6.8-16.1a1 1 0 0 0-.1-1Zm-7.3 13.6-1.3-4.2a1 1 0 0 0-.7-.7l-4.2-1.3 10.5-4.4-4.3 10.6Z" />
+        </svg>
+    );
 }
 
 // 사진 상세 화면. 사진, 좋아요, 댓글 작성·수정·삭제를 제공한다.
@@ -39,12 +73,30 @@ export default function PhotoDetail() {
     const [commentAction, setCommentAction] = useState<{ id: number; mode: "actions" | "delete" } | null>(null);
     const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
     const [editDraft, setEditDraft] = useState("");
-    const { photos, name, avatarUrl, membershipStatus, mustChangePassword, apiError, syncSession, togglePhotoLike, addPhotoComment, updatePhotoComment, removePhotoComment, removePhoto, reportPost } = useChurchStore();
+    const {
+        photos,
+        name,
+        avatarUrl,
+        membershipStatus,
+        mustChangePassword,
+        apiError,
+        syncSession,
+        togglePhotoLike,
+        addPhotoComment,
+        updatePhotoComment,
+        removePhotoComment,
+        removePhoto,
+        reportPost,
+    } = useChurchStore();
     const photo = photos.find((item) => String(item.id) === id);
     const isPreview = membershipStatus !== "approved" || mustChangePassword;
 
-    useEffect(() => { void syncSession().then(() => setReady(true)); }, [syncSession]);
-    useEffect(() => { if (ready && mustChangePassword) router.replace("/change-password"); }, [ready, mustChangePassword, router]);
+    useEffect(() => {
+        void syncSession().then(() => setReady(true));
+    }, [syncSession]);
+    useEffect(() => {
+        if (ready && mustChangePassword) router.replace("/change-password");
+    }, [ready, mustChangePassword, router]);
 
     // 승인 전 회원이면 승인 안내 창을 띄우고 false를 돌려준다.
     function requireApproval() {
@@ -71,7 +123,10 @@ export default function PhotoDetail() {
     async function saveEditedComment(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!requireApproval() || !photo || editingCommentId === null || !editDraft.trim()) return;
-        if (await updatePhotoComment(photo.id, editingCommentId, editDraft.trim())) { setEditingCommentId(null); setEditDraft(""); }
+        if (await updatePhotoComment(photo.id, editingCommentId, editDraft.trim())) {
+            setEditingCommentId(null);
+            setEditDraft("");
+        }
     }
 
     if (!ready || mustChangePassword) return <main className={styles.page} aria-busy="true" />;
@@ -79,9 +134,21 @@ export default function PhotoDetail() {
     return (
         <div className={styles.page}>
             <header className={styles.header}>
-                <button type="button" onClick={goBack} aria-label="사진 목록으로"><BackIcon /></button>
+                <button type="button" onClick={goBack} aria-label="사진 목록으로">
+                    <BackIcon />
+                </button>
                 <h1>사진</h1>
-                {photo ? <button type="button" onClick={() => requireApproval() && setMenu("actions")} aria-label="게시물 메뉴"><MoreIcon /></button> : <span />}
+                {photo ? (
+                    <button
+                        type="button"
+                        onClick={() => requireApproval() && setMenu("actions")}
+                        aria-label="게시물 메뉴"
+                    >
+                        <MoreIcon />
+                    </button>
+                ) : (
+                    <span />
+                )}
             </header>
 
             {photo ? (
@@ -90,68 +157,327 @@ export default function PhotoDetail() {
                         {photo.imageUrl ? (
                             <img className={styles.image} src={photo.imageUrl} alt={photo.caption} />
                         ) : (
-                            <div className={`${styles.image} photo-art photo-art--${photo.tone}`} role="img" aria-label="사진 이미지">
-                                <span className="photo-art__sun" /><span className="photo-art__shape" />
+                            <div
+                                className={`${styles.image} photo-art photo-art--${photo.tone}`}
+                                role="img"
+                                aria-label="사진 이미지"
+                            >
+                                <span className="photo-art__sun" />
+                                <span className="photo-art__shape" />
                             </div>
                         )}
                         <div className={styles.author}>
-                            <MemberAvatar className={styles.avatar} name={photo.author || (photo.mine ? name : "청년") || "나"}
-                                src={photo.mine ? avatarUrl : photo.authorAvatarUrl} />
-                            <div><strong>{photo.author || (photo.mine ? name || "나" : "청년")}</strong><small>{photo.time}</small></div>
+                            <MemberAvatar
+                                className={styles.avatar}
+                                name={photo.author || (photo.mine ? name : "청년") || "나"}
+                                src={photo.mine ? avatarUrl : photo.authorAvatarUrl}
+                            />
+                            <div>
+                                <strong>{photo.author || (photo.mine ? name || "나" : "청년")}</strong>
+                                <small>{photo.time}</small>
+                            </div>
                         </div>
                         <p className={styles.caption}>{photo.caption}</p>
                         <div className={styles.reactions}>
-                            <button type="button" className={photo.liked ? styles.liked : ""} aria-label={photo.liked ? "좋아요 취소" : "좋아요"} aria-pressed={Boolean(photo.liked)} onClick={() => { if (requireApproval()) void togglePhotoLike(photo.id); }}>
+                            <button
+                                type="button"
+                                className={photo.liked ? styles.liked : ""}
+                                aria-label={photo.liked ? "좋아요 취소" : "좋아요"}
+                                aria-pressed={Boolean(photo.liked)}
+                                onClick={() => {
+                                    if (requireApproval()) void togglePhotoLike(photo.id);
+                                }}
+                            >
                                 <HeartIcon filled={Boolean(photo.liked)} /> 좋아요 {photo.likes ?? 0}
                             </button>
                             <span>댓글 {photo.comments?.length ?? 0}</span>
                         </div>
                         <section className={styles.comments} aria-labelledby="photo-comments-title">
                             <h2 id="photo-comments-title">댓글</h2>
-                            {photo.comments?.length ? photo.comments.map((item) => (
-                                <article className={styles.comment} key={item.id}>
-                                    <MemberAvatar className={styles.avatar} name={item.author}
-                                        src={item.mine ? avatarUrl : item.authorAvatarUrl} />
-                                    <div className={styles.commentBody}>
-                                        <div className={styles.commentMeta}><strong>{item.author}</strong><time>{item.time}{item.edited ? " · 수정됨" : ""}</time></div>
-                                        {editingCommentId === item.id ? (
-                                            <form className={styles.editForm} onSubmit={saveEditedComment}>
-                                                <textarea aria-label="댓글 수정" maxLength={200} rows={3} value={editDraft} onChange={(event) => setEditDraft(event.target.value)} />
-                                                <div><button type="button" onClick={() => { setEditingCommentId(null); setEditDraft(""); }}>취소</button><button type="submit" disabled={!editDraft.trim()}>저장</button></div>
-                                            </form>
-                                        ) : <p>{item.text}</p>}
-                                    </div>
-                                    {item.mine && editingCommentId !== item.id && <button className={styles.commentMore} type="button" aria-label={`${item.author} 댓글 관리`} onClick={() => requireApproval() && setCommentAction({ id: item.id, mode: "actions" })}><MoreIcon /></button>}
-                                </article>
-                            )) : <p className={styles.empty}>첫 댓글을 남겨 보세요.</p>}
+                            {photo.comments?.length ? (
+                                photo.comments.map((item) => (
+                                    <article className={styles.comment} key={item.id}>
+                                        <MemberAvatar
+                                            className={styles.avatar}
+                                            name={item.author}
+                                            src={item.mine ? avatarUrl : item.authorAvatarUrl}
+                                        />
+                                        <div className={styles.commentBody}>
+                                            <div className={styles.commentMeta}>
+                                                <strong>{item.author}</strong>
+                                                <time>
+                                                    {item.time}
+                                                    {item.edited ? " · 수정됨" : ""}
+                                                </time>
+                                            </div>
+                                            {editingCommentId === item.id ? (
+                                                <form className={styles.editForm} onSubmit={saveEditedComment}>
+                                                    <textarea
+                                                        aria-label="댓글 수정"
+                                                        maxLength={200}
+                                                        rows={3}
+                                                        value={editDraft}
+                                                        onChange={(event) => setEditDraft(event.target.value)}
+                                                    />
+                                                    <div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setEditingCommentId(null);
+                                                                setEditDraft("");
+                                                            }}
+                                                        >
+                                                            취소
+                                                        </button>
+                                                        <button type="submit" disabled={!editDraft.trim()}>
+                                                            저장
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            ) : (
+                                                <p>{item.text}</p>
+                                            )}
+                                        </div>
+                                        {item.mine && editingCommentId !== item.id && (
+                                            <button
+                                                className={styles.commentMore}
+                                                type="button"
+                                                aria-label={`${item.author} 댓글 관리`}
+                                                onClick={() =>
+                                                    requireApproval() &&
+                                                    setCommentAction({ id: item.id, mode: "actions" })
+                                                }
+                                            >
+                                                <MoreIcon />
+                                            </button>
+                                        )}
+                                    </article>
+                                ))
+                            ) : (
+                                <p className={styles.empty}>첫 댓글을 남겨 보세요.</p>
+                            )}
                         </section>
                     </main>
-                    <form className={styles.composer} onSubmit={(event) => { void submitComment(event); }}>
+                    <form
+                        className={styles.composer}
+                        onSubmit={(event) => {
+                            void submitComment(event);
+                        }}
+                    >
                         <div className={styles.composerInner}>
                             <MemberAvatar className={styles.avatar} name={name.trim() || "나"} src={avatarUrl} />
-                            <input aria-label="댓글" maxLength={200} placeholder="댓글을 남겨 보세요" value={comment} readOnly={isPreview} onChange={(event) => setComment(event.target.value)} onFocus={() => { if (isPreview) setNoticeOpen(true); }} />
-                            <button type="submit" aria-label="댓글 보내기" disabled={!comment.trim() && !isPreview}><SendIcon /></button>
+                            <input
+                                aria-label="댓글"
+                                maxLength={200}
+                                placeholder="댓글을 남겨 보세요"
+                                value={comment}
+                                readOnly={isPreview}
+                                onChange={(event) => setComment(event.target.value)}
+                                onFocus={() => {
+                                    if (isPreview) setNoticeOpen(true);
+                                }}
+                            />
+                            <button type="submit" aria-label="댓글 보내기" disabled={!comment.trim() && !isPreview}>
+                                <SendIcon />
+                            </button>
                         </div>
                         <p>사진을 나누고, 서로의 안부를 살펴요</p>
                     </form>
                 </>
             ) : (
-                <main className={styles.missing}><h2>{apiError ? "사진을 불러오지 못했어요" : "사진을 찾을 수 없어요"}</h2><p>{apiError || "삭제되었거나 존재하지 않는 사진이에요."}</p><button type="button" onClick={goBack}>사진 목록으로</button></main>
+                <main className={styles.missing}>
+                    <h2>{apiError ? "사진을 불러오지 못했어요" : "사진을 찾을 수 없어요"}</h2>
+                    <p>{apiError || "삭제되었거나 존재하지 않는 사진이에요."}</p>
+                    <button type="button" onClick={goBack}>
+                        사진 목록으로
+                    </button>
+                </main>
             )}
 
-            {noticeOpen && <div className={styles.backdrop} onClick={() => setNoticeOpen(false)}><section className={styles.dialog} role="alertdialog" aria-modal="true" aria-labelledby="approval-title" onClick={(event) => event.stopPropagation()}><h2 id="approval-title">가입 승인이 필요해요</h2><p>둘러보기에서는 기능을 사용할 수 없어요. 가입 승인이 완료되면 이용할 수 있어요.</p><button type="button" onClick={() => setNoticeOpen(false)}>확인</button></section></div>}
-            {commentAction && <div className={styles.backdrop} onClick={() => setCommentAction(null)}><section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="comment-action-title" onClick={(event) => event.stopPropagation()}>
-                <h2 id="comment-action-title">내 댓글 관리</h2>
-                {commentAction.mode === "actions" ? <><p>내가 남긴 댓글을 수정하거나 삭제할 수 있어요.</p><button type="button" onClick={() => { const selected = photo?.comments?.find((item) => item.id === commentAction.id && item.mine); if (selected) { setEditingCommentId(selected.id); setEditDraft(selected.text); } setCommentAction(null); }}>댓글 수정</button><button className={styles.secondary} type="button" onClick={() => setCommentAction({ ...commentAction, mode: "delete" })}>댓글 삭제</button></> : <><p>이 댓글을 삭제할까요?</p><button type="button" onClick={() => { if (photo) void removePhotoComment(photo.id, commentAction.id).then((ok) => { if (ok) setCommentAction(null); }); }}>삭제하기</button></>}
-                <button className={styles.secondary} type="button" onClick={() => setCommentAction(null)}>취소</button>
-            </section></div>}
-            {menu !== "closed" && <div className={styles.backdrop} onClick={() => { setMenu("closed"); setReportReason(""); setReportOther(""); }}><section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="photo-action-title" onClick={(event) => event.stopPropagation()}>
-                <h2 id="photo-action-title">게시물 관리</h2>
-                {menu === "actions" && <><p>{photo?.mine ? "내가 나눈 사진을 관리해요." : "이 사진에 도움이 필요한가요?"}</p><button type="button" onClick={() => setMenu(photo?.mine ? "delete" : "report")}>{photo?.mine ? "내 사진 삭제하기" : "운영자에게 신고하기"}</button></>}
-                {menu === "delete" && <><p>이 사진을 삭제할까요?</p><button type="button" onClick={() => { if (photo) void removePhoto(photo.id).then((ok) => { if (ok) { setMenu("closed"); goBack(); } }); }}>삭제하기</button></>}
-                {menu === "report" && <><p>신고 이유를 선택해 주세요.</p><select aria-label="신고 이유" value={reportReason} onChange={(event) => { setReportReason(event.target.value); setReportOther(""); }}><option value="">이유 선택</option><option>동의 없는 사진 또는 개인정보</option><option>상처를 주거나 괴롭히는 내용</option><option>위험하거나 부적절한 내용</option><option>기타</option></select>{reportReason === "기타" && <label className={styles.reportOther}>신고 내용<textarea value={reportOther} onChange={(event) => setReportOther(event.target.value)} maxLength={496} placeholder="신고 내용을 구체적으로 적어 주세요" rows={3} required /></label>}<button type="button" disabled={!reportReason || (reportReason === "기타" && !reportOther.trim())} onClick={() => { if (photo && reportReason && (reportReason !== "기타" || reportOther.trim())) { const reason = reportReason === "기타" ? `기타: ${reportOther.trim()}` : reportReason; void reportPost("photo", photo.id, reason).then((ok) => { if (ok) { setMenu("closed"); setReportReason(""); setReportOther(""); } }); } }}>신고하기</button></>}
-                <button className={styles.secondary} type="button" onClick={() => { setMenu("closed"); setReportReason(""); setReportOther(""); }}>닫기</button>
-            </section></div>}
+            {noticeOpen && (
+                <div className={styles.backdrop} onClick={() => setNoticeOpen(false)}>
+                    <section
+                        className={styles.dialog}
+                        role="alertdialog"
+                        aria-modal="true"
+                        aria-labelledby="approval-title"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <h2 id="approval-title">가입 승인이 필요해요</h2>
+                        <p>둘러보기에서는 기능을 사용할 수 없어요. 가입 승인이 완료되면 이용할 수 있어요.</p>
+                        <button type="button" onClick={() => setNoticeOpen(false)}>
+                            확인
+                        </button>
+                    </section>
+                </div>
+            )}
+            {commentAction && (
+                <div className={styles.backdrop} onClick={() => setCommentAction(null)}>
+                    <section
+                        className={styles.dialog}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="comment-action-title"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <h2 id="comment-action-title">내 댓글 관리</h2>
+                        {commentAction.mode === "actions" ? (
+                            <>
+                                <p>내가 남긴 댓글을 수정하거나 삭제할 수 있어요.</p>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const selected = photo?.comments?.find(
+                                            (item) => item.id === commentAction.id && item.mine,
+                                        );
+                                        if (selected) {
+                                            setEditingCommentId(selected.id);
+                                            setEditDraft(selected.text);
+                                        }
+                                        setCommentAction(null);
+                                    }}
+                                >
+                                    댓글 수정
+                                </button>
+                                <button
+                                    className={styles.secondary}
+                                    type="button"
+                                    onClick={() => setCommentAction({ ...commentAction, mode: "delete" })}
+                                >
+                                    댓글 삭제
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <p>이 댓글을 삭제할까요?</p>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (photo)
+                                            void removePhotoComment(photo.id, commentAction.id).then((ok) => {
+                                                if (ok) setCommentAction(null);
+                                            });
+                                    }}
+                                >
+                                    삭제하기
+                                </button>
+                            </>
+                        )}
+                        <button className={styles.secondary} type="button" onClick={() => setCommentAction(null)}>
+                            취소
+                        </button>
+                    </section>
+                </div>
+            )}
+            {menu !== "closed" && (
+                <div
+                    className={styles.backdrop}
+                    onClick={() => {
+                        setMenu("closed");
+                        setReportReason("");
+                        setReportOther("");
+                    }}
+                >
+                    <section
+                        className={styles.dialog}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="photo-action-title"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <h2 id="photo-action-title">게시물 관리</h2>
+                        {menu === "actions" && (
+                            <>
+                                <p>{photo?.mine ? "내가 나눈 사진을 관리해요." : "이 사진에 도움이 필요한가요?"}</p>
+                                <button type="button" onClick={() => setMenu(photo?.mine ? "delete" : "report")}>
+                                    {photo?.mine ? "내 사진 삭제하기" : "운영자에게 신고하기"}
+                                </button>
+                            </>
+                        )}
+                        {menu === "delete" && (
+                            <>
+                                <p>이 사진을 삭제할까요?</p>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (photo)
+                                            void removePhoto(photo.id).then((ok) => {
+                                                if (ok) {
+                                                    setMenu("closed");
+                                                    goBack();
+                                                }
+                                            });
+                                    }}
+                                >
+                                    삭제하기
+                                </button>
+                            </>
+                        )}
+                        {menu === "report" && (
+                            <>
+                                <p>신고 이유를 선택해 주세요.</p>
+                                <select
+                                    aria-label="신고 이유"
+                                    value={reportReason}
+                                    onChange={(event) => {
+                                        setReportReason(event.target.value);
+                                        setReportOther("");
+                                    }}
+                                >
+                                    <option value="">이유 선택</option>
+                                    <option>동의 없는 사진 또는 개인정보</option>
+                                    <option>상처를 주거나 괴롭히는 내용</option>
+                                    <option>위험하거나 부적절한 내용</option>
+                                    <option>기타</option>
+                                </select>
+                                {reportReason === "기타" && (
+                                    <label className={styles.reportOther}>
+                                        신고 내용
+                                        <textarea
+                                            value={reportOther}
+                                            onChange={(event) => setReportOther(event.target.value)}
+                                            maxLength={496}
+                                            placeholder="신고 내용을 구체적으로 적어 주세요"
+                                            rows={3}
+                                            required
+                                        />
+                                    </label>
+                                )}
+                                <button
+                                    type="button"
+                                    disabled={!reportReason || (reportReason === "기타" && !reportOther.trim())}
+                                    onClick={() => {
+                                        if (photo && reportReason && (reportReason !== "기타" || reportOther.trim())) {
+                                            const reason =
+                                                reportReason === "기타" ? `기타: ${reportOther.trim()}` : reportReason;
+                                            void reportPost("photo", photo.id, reason).then((ok) => {
+                                                if (ok) {
+                                                    setMenu("closed");
+                                                    setReportReason("");
+                                                    setReportOther("");
+                                                }
+                                            });
+                                        }
+                                    }}
+                                >
+                                    신고하기
+                                </button>
+                            </>
+                        )}
+                        <button
+                            className={styles.secondary}
+                            type="button"
+                            onClick={() => {
+                                setMenu("closed");
+                                setReportReason("");
+                                setReportOther("");
+                            }}
+                        >
+                            닫기
+                        </button>
+                    </section>
+                </div>
+            )}
         </div>
     );
 }

@@ -55,16 +55,57 @@
     font-size: var(--text-sm);
     line-height: 1.6;
 }
-.manualPush { margin-top: var(--space-step-9); padding-top: var(--space-step-8); border-top: 1px solid var(--color-paper-3); }
-.manualPush h3 { margin: 0 0 var(--space-xs); color: var(--ink); font-size: 18px; }
-.manualPush > p:first-of-type { margin: 0 0 var(--space-step-5); color: var(--muted); font-size: var(--text-sm); line-height: 1.6; }
-.manualHint { margin: 0 0 var(--space-sm); color: var(--muted); font-size: var(--text-xs); line-height: 1.5; }
-.manualPush > button { margin-top: var(--space-sm); }
-.manualConfirm { margin-top: var(--space-step-5); padding: var(--space-step-5); border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
-.manualConfirm > strong { color: var(--green-dark); font-size: var(--text-sm); }
-.manualConfirm p { margin: var(--space-sm) 0 var(--space-md); color: var(--ink); font-size: var(--text-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
-.manualConfirm p b { line-height: 1.8; }
-.manualConfirm > div { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.manualPush {
+    margin-top: var(--space-step-9);
+    padding-top: var(--space-step-8);
+    border-top: 1px solid var(--color-paper-3);
+}
+.manualPush h3 {
+    margin: 0 0 var(--space-xs);
+    color: var(--ink);
+    font-size: 18px;
+}
+.manualPush > p:first-of-type {
+    margin: 0 0 var(--space-step-5);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+}
+.manualHint {
+    margin: 0 0 var(--space-sm);
+    color: var(--muted);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+}
+.manualPush > button {
+    margin-top: var(--space-sm);
+}
+.manualConfirm {
+    margin-top: var(--space-step-5);
+    padding: var(--space-step-5);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+}
+.manualConfirm > strong {
+    color: var(--green-dark);
+    font-size: var(--text-sm);
+}
+.manualConfirm p {
+    margin: var(--space-sm) 0 var(--space-md);
+    color: var(--ink);
+    font-size: var(--text-sm);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.manualConfirm p b {
+    line-height: 1.8;
+}
+.manualConfirm > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+}
 .sectionTop {
     display: flex;
     justify-content: space-between;

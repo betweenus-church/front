@@ -1,0 +1,9 @@
+node_modules
+.next
+.next-dev
+.next-qa
+.next-production
+.server
+pnpm-lock.yaml
+next-env.d.ts
+*.tsbuildinfo

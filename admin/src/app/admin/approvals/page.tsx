@@ -115,7 +115,9 @@ export default function AdminApprovalsPage() {
         if (step === "A04") reasonRef.current?.focus();
     }, [step]);
     useEffect(() => {
-        void api<Request[]>("/admin/approvals").then(setRequests).catch(() => setNotice("가입 요청을 불러오지 못했어요."));
+        void api<Request[]>("/admin/approvals")
+            .then(setRequests)
+            .catch(() => setNotice("가입 요청을 불러오지 못했어요."));
     }, []);
 
     const selected = requests.find((request) => request.id === selectedId) ?? null;
@@ -175,7 +177,9 @@ export default function AdminApprovalsPage() {
             await api(`/admin/approvals/${selected.id}/reject`, json("POST", { reason: reason.trim() }));
             setRequests(await api<Request[]>("/admin/approvals"));
             setStep("A06");
-        } catch { setStep("A10"); }
+        } catch {
+            setStep("A10");
+        }
     }
     // 가입 신청을 승인한다.
     async function approve() {
@@ -186,7 +190,9 @@ export default function AdminApprovalsPage() {
             await api(`/admin/approvals/${id}/approve`, json("POST"));
             setRequests(await api<Request[]>("/admin/approvals"));
             setStep("A09");
-        } catch { setStep("A10"); }
+        } catch {
+            setStep("A10");
+        }
     }
     // 거절 사유가 입력됐는지 확인하고 다음 단계로 넘긴다.
     function checkReason() {

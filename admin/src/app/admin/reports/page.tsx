@@ -27,10 +27,30 @@ type Report = {
     outcome?: string;
 };
 
-type ApiReport = { id: number; kind: "photo" | "word" | "prayer" | "comment"; postId: number; reason: string; excerpt: string | null; createdAt: string; status: "pending" | "resolved"; action: string | null; resolution: string | null };
+type ApiReport = {
+    id: number;
+    kind: "photo" | "word" | "prayer" | "comment";
+    postId: number;
+    reason: string;
+    excerpt: string | null;
+    createdAt: string;
+    status: "pending" | "resolved";
+    action: string | null;
+    resolution: string | null;
+};
 const kindLabel = { photo: "사진", word: "말씀", prayer: "기도 나눔", comment: "댓글" };
 // 서버의 신고 데이터를 화면용 형태로 바꾼다.
-const toReport = (item: ApiReport): Report => ({ id: `R-${item.id}`, kind: kindLabel[item.kind], hasPhoto: item.kind === "photo" || item.kind === "comment", target: `${item.kind === "comment" ? "댓글" : "게시물"} · #${item.postId}`, reason: item.reason, excerpt: item.excerpt ?? "신고된 콘텐츠를 찾을 수 없습니다.", receivedAt: new Date(item.createdAt).toLocaleString("ko-KR"), status: item.status === "pending" ? "pending" : item.action === "dismiss" ? "completed" : "deleted", outcome: item.resolution ?? undefined });
+const toReport = (item: ApiReport): Report => ({
+    id: `R-${item.id}`,
+    kind: kindLabel[item.kind],
+    hasPhoto: item.kind === "photo" || item.kind === "comment",
+    target: `${item.kind === "comment" ? "댓글" : "게시물"} · #${item.postId}`,
+    reason: item.reason,
+    excerpt: item.excerpt ?? "신고된 콘텐츠를 찾을 수 없습니다.",
+    receivedAt: new Date(item.createdAt).toLocaleString("ko-KR"),
+    status: item.status === "pending" ? "pending" : item.action === "dismiss" ? "completed" : "deleted",
+    outcome: item.resolution ?? undefined,
+});
 const filters: { id: Filter; label: string }[] = [
     { id: "pending", label: "미처리" },
     { id: "reviewing", label: "검토 중" },
@@ -47,8 +67,16 @@ const labels: Record<Status, string> = {
 // 신고된 사진을 보여 준다. 원본이 없으면 안내 문구를 보여 준다.
 function ReportPhoto({ id }: { id: string }) {
     const [failed, setFailed] = useState(false);
-    if (failed) return <p className={styles.imageUnavailable}>사진을 불러올 수 없습니다. 원본이 삭제되었을 수 있어요.</p>;
-    return <img className={styles.reportImage} src={`/api/admin/reports/${id.slice(2)}/image`} alt="신고된 게시물 사진" onError={() => setFailed(true)} />;
+    if (failed)
+        return <p className={styles.imageUnavailable}>사진을 불러올 수 없습니다. 원본이 삭제되었을 수 있어요.</p>;
+    return (
+        <img
+            className={styles.reportImage}
+            src={`/api/admin/reports/${id.slice(2)}/image`}
+            alt="신고된 게시물 사진"
+            onError={() => setFailed(true)}
+        />
+    );
 }
 
 // 관리자 메뉴 아이콘.
@@ -115,7 +143,11 @@ export default function AdminReportsPage() {
     const [action, setAction] = useState<Action>("complete");
     const outcomeRef = useRef<HTMLTextAreaElement>(null);
 
-    useEffect(() => { void api<ApiReport[]>("/admin/reports").then((items) => setReports(items.map(toReport))).catch(() => setNotice("신고 목록을 불러오지 못했어요.")); }, []);
+    useEffect(() => {
+        void api<ApiReport[]>("/admin/reports")
+            .then((items) => setReports(items.map(toReport)))
+            .catch(() => setNotice("신고 목록을 불러오지 못했어요."));
+    }, []);
     useEffect(() => {
         if (step === "B03" || step === "B04") outcomeRef.current?.focus();
     }, [step]);
@@ -168,10 +200,15 @@ export default function AdminReportsPage() {
         setAction(next);
         setStep("B07");
         try {
-            await api(`/admin/reports/${Number(id.slice(2))}/resolve`, json("POST", { action: next === "delete" ? "delete" : "dismiss", resolution: outcome.trim() }));
+            await api(
+                `/admin/reports/${Number(id.slice(2))}/resolve`,
+                json("POST", { action: next === "delete" ? "delete" : "dismiss", resolution: outcome.trim() }),
+            );
             setReports((await api<ApiReport[]>("/admin/reports")).map(toReport));
             setStep(next === "delete" ? "B06" : "B05");
-        } catch { setStep("B08"); }
+        } catch {
+            setStep("B08");
+        }
     }
     // 처리 결과가 입력됐는지 확인한 뒤 신고를 처리한다.
     function confirmAction() {
@@ -272,7 +309,10 @@ export default function AdminReportsPage() {
                                         <p>
                                             대상: {selected?.target} · {selected?.id}
                                         </p>
-                                        <p>작성자의 내 소식함에 삭제 사유를 남겼어요. 알림을 허용한 기기에는 푸시도 발송합니다.</p>
+                                        <p>
+                                            작성자의 내 소식함에 삭제 사유를 남겼어요. 알림을 허용한 기기에는 푸시도
+                                            발송합니다.
+                                        </p>
                                     </>
                                 )}
                                 {step === "B07" && (
@@ -467,9 +507,13 @@ export default function AdminReportsPage() {
                         aria-modal="true"
                         aria-labelledby="report-dialog-title"
                     >
-                        <h2 id="report-dialog-title">{action === "delete" ? "게시물을 삭제할까요?" : "조치 없이 검토를 마칠까요?"}</h2>
+                        <h2 id="report-dialog-title">
+                            {action === "delete" ? "게시물을 삭제할까요?" : "조치 없이 검토를 마칠까요?"}
+                        </h2>
                         <p>
-                            {action === "delete" ? "작성자에게 전달할 삭제 사유를 적어 주세요." : "신고된 결과와 판단 근거를 기록해 주세요."}
+                            {action === "delete"
+                                ? "작성자에게 전달할 삭제 사유를 적어 주세요."
+                                : "신고된 결과와 판단 근거를 기록해 주세요."}
                             <br />
                             다시 게시물을 검토하고 싶다면 취소해 주세요.
                         </p>
@@ -484,14 +528,20 @@ export default function AdminReportsPage() {
                                     setOutcome(event.target.value);
                                     if (step === "B04") setStep("B03");
                                 }}
-                                placeholder={action === "delete" ? "예: 다른 구성원에 대한 비방 내용이 포함되어 삭제했습니다." : "검토 결과를 입력해 주세요."}
+                                placeholder={
+                                    action === "delete"
+                                        ? "예: 다른 구성원에 대한 비방 내용이 포함되어 삭제했습니다."
+                                        : "검토 결과를 입력해 주세요."
+                                }
                                 aria-invalid={step === "B04"}
                                 aria-describedby={step === "B04" ? "report-outcome-error" : undefined}
                             />
                         </label>
                         {step === "B04" && (
                             <p className={common.error} id="report-outcome-error">
-                                {action === "delete" ? "작성자에게 전달할 삭제 사유를 입력해 주세요." : "검토 결과를 입력해야 다음 단계로 이동할 수 있어요."}
+                                {action === "delete"
+                                    ? "작성자에게 전달할 삭제 사유를 입력해 주세요."
+                                    : "검토 결과를 입력해야 다음 단계로 이동할 수 있어요."}
                             </p>
                         )}
                         <div className={common.dialogActions}>

@@ -56,17 +56,17 @@ pnpm dev
 - 개발 중 기존 3001의 /admin/... 주소는 3002의 같은 관리자 경로로 이동합니다.
 - API는 별도 back 서버가 필요합니다. 기본 개발 API는 4100입니다.
 
-| 루트 명령 | 동작 |
-| --- | --- |
-| pnpm dev | 두 개발 서버 함께 실행 |
-| pnpm dev:client / pnpm dev:admin | 각 개발 서버만 실행 |
-| pnpm check | 공통 패키지 연결·앱 경계 검사 |
-| pnpm typecheck | 두 앱 경로 타입·TypeScript 검사 |
-| pnpm build | 두 앱 각각 빌드 |
-| pnpm build:client / pnpm build:admin | 각 앱만 빌드 |
-| pnpm start | 빌드한 두 앱 실행 |
-| pnpm start:client / pnpm start:admin | 빌드한 앱 하나만 실행 |
-| pnpm build:qa / pnpm start:qa | 기존 사용자 앱 QA 명령, QA 포트 3003, API 4200 |
+| 루트 명령                            | 동작                                           |
+| ------------------------------------ | ---------------------------------------------- |
+| pnpm dev                             | 두 개발 서버 함께 실행                         |
+| pnpm dev:client / pnpm dev:admin     | 각 개발 서버만 실행                            |
+| pnpm check                           | 공통 패키지 연결·앱 경계 검사                  |
+| pnpm typecheck                       | 두 앱 경로 타입·TypeScript 검사                |
+| pnpm build                           | 두 앱 각각 빌드                                |
+| pnpm build:client / pnpm build:admin | 각 앱만 빌드                                   |
+| pnpm start                           | 빌드한 두 앱 실행                              |
+| pnpm start:client / pnpm start:admin | 빌드한 앱 하나만 실행                          |
+| pnpm build:qa / pnpm start:qa        | 기존 사용자 앱 QA 명령, QA 포트 3003, API 4200 |
 
 npm run dev 등 npm run 명령으로도 루트 스크립트를 실행할 수 있습니다. 의존성 설치·잠금 파일은 pnpm으로 관리합니다. 각 앱은 src, public, Next 설정, 빌드 폴더를 독립적으로 가집니다.
 

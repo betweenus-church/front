@@ -14,12 +14,19 @@ export function useAdminCounts() {
         // 서버에서 대기 건수를 다시 불러온다.
         const refresh = () => {
             void api<AdminCounts>("/admin/dashboard")
-                .then((value) => { if (active) setCounts(value); })
-                .catch(() => { if (active) setCounts(null); });
+                .then((value) => {
+                    if (active) setCounts(value);
+                })
+                .catch(() => {
+                    if (active) setCounts(null);
+                });
         };
         refresh();
         window.addEventListener("focus", refresh);
-        return () => { active = false; window.removeEventListener("focus", refresh); };
+        return () => {
+            active = false;
+            window.removeEventListener("focus", refresh);
+        };
     }, []);
 
     return counts;
