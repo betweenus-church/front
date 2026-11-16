@@ -40,6 +40,7 @@ type ApiNotice = {
     scheduled_at: string | null;
     created_at: string;
 };
+// 서버의 공지 데이터를 화면용 형태로 바꾼다.
 const toNotice = (item: ApiNotice): Notice => ({
     id: item.id,
     title: item.title,
@@ -55,14 +56,17 @@ const statusLabels: Record<NoticeStatus, string> = {
     draft: "임시저장",
     ended: "게시 종료",
 };
+// 현재 단계 번호로 어느 탭(기본/관리자/공지/푸시)인지 정한다.
 const tabForStep = (step: Step): Tab =>
     step === "S45" ? "push" : Number(step.slice(1)) <= 7 ? "basic" : Number(step.slice(1)) <= 15 ? "admins" : Number(step.slice(1)) <= 43 ? "notices" : "word";
+// 오늘 날짜를 'YYYY.MM.DD' 형태로 만든다.
 const today = () =>
     new Date()
         .toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
         .replace(/\.\s?/g, ".")
         .replace(/\.$/, "");
 
+// 관리자 메뉴 아이콘.
 function Icon({ name }: { name: IconName }) {
     const paths = {
         grid: (
@@ -113,6 +117,7 @@ function Icon({ name }: { name: IconName }) {
     );
 }
 
+// 운영 설정 화면. 기본 정보, 관리자 계정, 공지, 오늘의 말씀, 푸시를 관리한다.
 export default function AdminSettingsPage() {
     const counts = useAdminCounts();
     const [step, setStep] = useState<Step>("S01");
@@ -221,6 +226,7 @@ export default function AdminSettingsPage() {
         return () => controller.abort();
     }, [dailyWordDate, dailyWords]);
 
+    // 오늘의 말씀(본문·질문·출처)을 검사하고 저장한다.
     async function saveDailyWord() {
         const reference = dailyWordDraft.reference.trim();
         const scriptureText = dailyWordDraft.scriptureText.trim();
@@ -249,6 +255,7 @@ export default function AdminSettingsPage() {
             setDailyWordSaving(false);
         }
     }
+    // 자동 푸시 설정(시각 등)을 저장한다.
     async function savePushSettings() {
         setPushSaving(true);
         setPushError("");
@@ -263,6 +270,7 @@ export default function AdminSettingsPage() {
             setPushSaving(false);
         }
     }
+    // 선택한 공지나 소식으로 푸시 알림을 바로 보낸다.
     async function sendManualPush() {
         if (manualSending || !manualTarget) return;
         setManualSending(true);
@@ -286,6 +294,7 @@ export default function AdminSettingsPage() {
             setManualSending(false);
         }
     }
+    // 공지 목록을 서버에서 다시 불러온다.
     async function reloadNotices() {
         setNotices((await api<ApiNotice[]>("/admin/notices")).map(toNotice));
     }
@@ -314,10 +323,12 @@ export default function AdminSettingsPage() {
         [filter, notices, query],
     );
 
+    // 다른 단계 화면으로 이동하고 안내 문구를 지운다.
     function move(next: Step) {
         setToast("");
         setStep(next);
     }
+    // 공지 검색어와 상태 필터를 적용한다.
     function applyNoticeFilter(nextQuery: string, nextFilter: "all" | NoticeStatus) {
         setQuery(nextQuery);
         setFilter(nextFilter);
@@ -331,6 +342,7 @@ export default function AdminSettingsPage() {
         );
         move(found ? "S17" : "S18");
     }
+    // 탭을 바꾼다. 저장하지 않은 변경이 있으면 나가기 확인을 먼저 띄운다.
     function startTab(next: Tab) {
         const target: Step = next === "basic" ? "S01" : next === "admins" ? "S08" : next === "notices" ? "S16" : next === "push" ? "S45" : "S44";
         if (step === "S02" || step === "S03") {
@@ -350,6 +362,7 @@ export default function AdminSettingsPage() {
         }
         move(target);
     }
+    // 공동체 이름과 소개를 검사하고 저장 확인 단계로 넘긴다.
     function saveBasic() {
         const name = basicDraft.name.trim();
         if (name.length < 1 || name.length > 30) {
@@ -365,6 +378,7 @@ export default function AdminSettingsPage() {
         setBasicError("");
         move("S04");
     }
+    // 공동체 기본 정보를 서버에 저장한다.
     async function confirmBasic() {
         try {
             const value = await api<{ name: string; intro: string }>(
@@ -377,6 +391,7 @@ export default function AdminSettingsPage() {
             move("S06");
         }
     }
+    // 추가할 관리자 입력값을 검사하고 확인 단계로 넘긴다.
     function submitAdmin() {
         const name = adminDraft.name.trim(),
             account = adminDraft.account.trim();
@@ -403,6 +418,7 @@ export default function AdminSettingsPage() {
         setAdminError("");
         move("S11");
     }
+    // 새 관리자 계정을 만든다.
     async function confirmAddAdmin() {
         try {
             const created = await api<Admin>(
@@ -422,6 +438,7 @@ export default function AdminSettingsPage() {
             move("S10");
         }
     }
+    // 선택한 관리자 계정을 삭제한다.
     async function deleteAdmin() {
         if (!selectedAdminId) return;
         try {
@@ -434,18 +451,21 @@ export default function AdminSettingsPage() {
             move("S13");
         }
     }
+    // 새 공지 작성을 시작한다.
     function startNoticeCreate() {
         setSelectedNoticeId(null);
         setNoticeDraft({ title: "", body: "" });
         setNoticeError("");
         move("S24");
     }
+    // 선택한 공지 수정을 시작한다.
     function startNoticeEdit(item: Notice) {
         setSelectedNoticeId(item.id);
         setNoticeDraft({ title: item.title, body: item.body });
         setNoticeError("");
         move("S20");
     }
+    // 공지 제목과 내용이 비어 있지 않은지 검사한다.
     function validateNotice(errorStep: Step) {
         if (!noticeDraft.title.trim() || !noticeDraft.body.trim()) {
             setNoticeError("제목과 내용을 모두 입력해 주세요.");
@@ -460,6 +480,7 @@ export default function AdminSettingsPage() {
         setNoticeError("");
         return true;
     }
+    // 수정한 공지를 저장한다.
     async function saveNoticeEdit() {
         if (!validateNotice("S41")) return;
         try {
@@ -480,6 +501,7 @@ export default function AdminSettingsPage() {
             move("S41");
         }
     }
+    // 공지를 임시저장·게시·예약 상태로 새로 만들거나 기존 임시저장본을 갱신한다.
     async function createNotice(status: NoticeStatus, date?: string) {
         try {
             const existingDraft = notices.find((item) => item.id === selectedNoticeId && item.status === "draft");
@@ -502,6 +524,7 @@ export default function AdminSettingsPage() {
             move("S41");
         }
     }
+    // 선택한 공지의 상태(고정, 게시, 숨김 등)를 바꾼다.
     async function changeSelected(patch: Partial<Notice>, completion: Step, action: typeof failureAction) {
         if (!selectedNotice) return;
         try {
@@ -522,6 +545,7 @@ export default function AdminSettingsPage() {
             move("S41");
         }
     }
+    // 예약 게시 시각이 현재보다 뒤인지 확인하고 예약한다.
     function confirmSchedule() {
         const scheduled = new Date(scheduledAt);
         if (!scheduledAt || Number.isNaN(scheduled.getTime()) || scheduled.getTime() <= Date.now()) {
@@ -532,6 +556,7 @@ export default function AdminSettingsPage() {
         setNoticeError("");
         move("S31");
     }
+    // 편집 화면을 나간다. 저장하지 않은 변경이 있으면 확인 창을 띄운다.
     function leaveEditor() {
         if (step === "S02" || step === "S03") {
             if (basicDraft.name !== basic.name || basicDraft.intro !== basic.intro) {

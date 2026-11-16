@@ -23,6 +23,7 @@ const navItems: { id: Area; label: string; icon: string }[] = [
     { id: "me", label: "내 공간", icon: "person" },
 ];
 
+// 사이 로고 마크(두 개의 원)를 그린다. small이면 작은 크기로 표시한다.
 function Mark({ small = false }: { small?: boolean }) {
     return (
         <span className={`mark ${small ? "mark--small" : ""}`} aria-hidden="true">
@@ -32,6 +33,7 @@ function Mark({ small = false }: { small?: boolean }) {
     );
 }
 
+// 이름(name)에 맞는 SVG 아이콘을 그린다.
 function Icon({ name }: { name: string }) {
     const paths: Record<string, React.ReactNode> = {
         home: (
@@ -111,6 +113,7 @@ function Icon({ name }: { name: string }) {
     );
 }
 
+// 앱 공통 버튼. kind로 모양(primary/quiet 등)을 고른다.
 function Button({
     children,
     onClick,
@@ -133,6 +136,7 @@ function Button({
 
 type PostAction = { kind: "photo" | "prayer" | "word"; id: number; mine: boolean; title: string };
 
+// 전화번호 입력값을 숫자만 남겨 010-1234-5678 형태로 바꾼다.
 function formatPhone(value: string) {
     const digits = value.replace(/\D/g, "").slice(0, 11);
     if (digits.length <= 3) return digits;
@@ -140,6 +144,7 @@ function formatPhone(value: string) {
     return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
 }
 
+// 선택한 사진을 최대 960px로 줄여 미리보기용 data URL로 만든다.
 function imageDataUrl(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
         const image = new Image();
@@ -167,6 +172,7 @@ function imageDataUrl(file: File): Promise<string> {
     });
 }
 
+// 사용자 앱의 메인 화면. 시작·가입·로그인과 홈/말씀/사진/기도/내 공간 탭을 모두 그린다.
 export default function Page() {
     const router = useRouter();
     const pathname = usePathname();
@@ -222,9 +228,11 @@ export default function Page() {
                   : pathname === "/pending"
                     ? "pending"
                     : "app";
+    // 시작·가입·로그인 화면으로 이동한다.
     function setRoute(next: "start" | "signup" | "login") {
         router.push(`/${next}`);
     }
+    // 아래 탭(홈/말씀/사진/기도/내 공간)을 바꾸고 해당 주소로 이동한다.
     function setArea(next: Area) {
         setStoredArea(next);
         router.push(`/community/${next}`);
@@ -275,6 +283,7 @@ export default function Page() {
     const [showToast, setShowToast] = useState(false);
     const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
 
+    // 승인 전 회원이면 승인 안내 창을 띄우고 false를 돌려준다. 글쓰기 등 동작 전에 확인한다.
     function requireApproval() {
         if (isPreview) {
             setApprovalNoticeOpen(true);
@@ -290,6 +299,7 @@ export default function Page() {
     useEffect(() => {
         let lastDate = churchToday();
         let timer: number;
+        // 한국 시간 기준 오늘 날짜로 말씀 날짜를 맞춘다. 사용자가 다른 날짜를 보고 있으면 유지한다.
         const updateToday = () => {
             const date = churchToday();
             if (date !== lastDate) {
@@ -300,6 +310,7 @@ export default function Page() {
             }
             setTodayDate(date);
         };
+        // 다음 자정(한국 시간)에 날짜를 다시 갱신하도록 타이머를 건다.
         const scheduleMidnight = () => {
             window.clearTimeout(timer);
             const nextMidnight = Date.parse(`${shiftDate(churchToday(), 1)}T00:00:00+09:00`);
@@ -311,6 +322,7 @@ export default function Page() {
                 Math.max(100, nextMidnight - Date.now() + 100),
             );
         };
+        // 창으로 돌아오거나 화면이 다시 보일 때 날짜와 자정 타이머를 다시 맞춘다.
         const resume = () => {
             updateToday();
             scheduleMidnight();
@@ -400,6 +412,7 @@ export default function Page() {
             return;
         }
         let active = true;
+        // 서버에서 안 읽은 알림 수를 가져와 상단 배지에 반영한다.
         const refreshCount = async () => {
             try {
                 const response = await api<InboxResponse>("/inbox");
@@ -409,6 +422,7 @@ export default function Page() {
             }
         };
         void refreshCount();
+        // 화면이 다시 보이면 안 읽은 알림 수를 새로 가져온다.
         const onVisible = () => {
             if (document.visibilityState === "visible") void refreshCount();
         };
@@ -436,6 +450,7 @@ export default function Page() {
         notify("");
     }, [pathname, notify]);
 
+    // 가입 신청 폼 제출. 이름·전화번호·교회명·비밀번호를 검사한 뒤 가입을 요청한다.
     async function submitSignup(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (name.trim().length < 1 || name.trim().length > 30) return setFormError("이름을 1~30자로 입력해 주세요.");
@@ -465,6 +480,7 @@ export default function Page() {
         }
     }
 
+    // 로그인 폼 제출. 전화번호와 비밀번호로 로그인하고 상태에 맞는 화면으로 보낸다.
     async function submitLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!/^01[016789]\d{7,8}$/.test(loginPhone.replace(/\D/g, "")))
@@ -486,6 +502,7 @@ export default function Page() {
         }
     }
 
+    // 처음 비밀번호 설정 폼 제출. 길이와 확인값을 검사한 뒤 저장한다.
     async function submitSetupPassword(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (setupPassword.length < 12 || setupPassword.length > 128)
@@ -503,6 +520,7 @@ export default function Page() {
         }
     }
 
+    // 비밀번호 변경 폼 제출. 현재 비밀번호와 새 비밀번호를 검사한 뒤 변경한다.
     async function submitChangePassword(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!currentPassword) return setFormError("현재 비밀번호를 입력해 주세요.");
@@ -526,6 +544,7 @@ export default function Page() {
         }
     }
 
+    // 로그아웃하고 시작 화면으로 이동한다.
     async function logout() {
         try {
             await logoutMember();
@@ -535,6 +554,7 @@ export default function Page() {
         }
     }
 
+    // 프로필 사진 파일을 골랐을 때 형식을 확인하고 업로드한다.
     async function selectAvatar(event: ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
         event.target.value = "";
@@ -555,6 +575,7 @@ export default function Page() {
         }
     }
 
+    // 프로필 사진을 삭제한다.
     async function deleteAvatar() {
         setAvatarBusy(true);
         try {
@@ -564,6 +585,7 @@ export default function Page() {
         }
     }
 
+    // 올릴 사진을 골랐을 때 이미지인지 확인하고 미리보기를 만든다.
     async function selectPhoto(event: ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -586,6 +608,7 @@ export default function Page() {
         }
     }
 
+    // 사진 올리기 창을 닫고 입력값과 동의 체크를 초기화한다.
     function closePhoto() {
         setPhotoImage("");
         setPhotoDraft("");
@@ -595,11 +618,13 @@ export default function Page() {
         setPhotoOpen(false);
     }
 
+    // 사진 올리기 완료. 동의를 모두 받았으면 사진을 업로드하고 창을 닫는다.
     async function finishPhoto() {
         if (isPreview || !photoImage || !photoPeopleConsent || !photoLocationConsent) return;
         if (await addPhoto(photoDraft.trim() || "오늘의 작은 순간", photoImage, name.trim() || "나")) closePhoto();
     }
 
+    // 삭제 확인 창에서 '삭제'를 눌렀을 때 사진·기도·말씀 나눔 중 해당 글을 지운다.
     async function confirmDelete() {
         if (isPreview || !postAction) return;
         const ok =
@@ -1873,7 +1898,13 @@ export default function Page() {
                                 <p>신고 이유를 선택해 주세요.</p>
                                 <label className="field">
                                     <span>신고 이유</span>
-                                    <select value={reportReason} onChange={(e) => { setReportReason(e.target.value); setReportOther(""); }}>
+                                    <select
+                                        value={reportReason}
+                                        onChange={(e) => {
+                                            setReportReason(e.target.value);
+                                            setReportOther("");
+                                        }}
+                                    >
                                         <option value="">이유를 선택해 주세요</option>
                                         <option>동의 없는 사진 또는 개인정보</option>
                                         <option>상처를 주거나 괴롭히는 내용</option>
@@ -1884,15 +1915,28 @@ export default function Page() {
                                 {reportReason === "기타" && (
                                     <label className="field">
                                         <span>신고 내용</span>
-                                        <textarea value={reportOther} onChange={(e) => setReportOther(e.target.value)} maxLength={496} placeholder="신고 내용을 구체적으로 적어 주세요" rows={3} required />
+                                        <textarea
+                                            value={reportOther}
+                                            onChange={(e) => setReportOther(e.target.value)}
+                                            maxLength={496}
+                                            placeholder="신고 내용을 구체적으로 적어 주세요"
+                                            rows={3}
+                                            required
+                                        />
                                     </label>
                                 )}
                                 <Button
                                     disabled={!reportReason || (reportReason === "기타" && !reportOther.trim())}
                                     onClick={() => {
-                                        if (!postAction || !reportReason || (reportReason === "기타" && !reportOther.trim())) return;
+                                        if (
+                                            !postAction ||
+                                            !reportReason ||
+                                            (reportReason === "기타" && !reportOther.trim())
+                                        )
+                                            return;
                                         if (isPreview) return;
-                                        const reason = reportReason === "기타" ? `기타: ${reportOther.trim()}` : reportReason;
+                                        const reason =
+                                            reportReason === "기타" ? `기타: ${reportOther.trim()}` : reportReason;
                                         void reportPost(postAction.kind, postAction.id, reason).then((ok) => {
                                             if (ok) {
                                                 setPostAction(null);
@@ -1931,6 +1975,7 @@ export default function Page() {
     );
 }
 
+// 홈 탭 화면. 오늘의 말씀, 공지, 최근 사진·기도를 모아 보여 준다.
 function Home({
     name,
     approved,
@@ -1979,119 +2024,126 @@ function Home({
                 </div>
             </div>
             <div className="home-board">
-            <div className="home-word">
-            <button className="week-card" onClick={() => setArea("word")}>
-                <div className="week-card__top">
-                    <span>
-                        {todayWordStatus === "ready" && todayWord && !todayWord.scriptureText
-                            ? "오늘의 묵상"
-                            : "오늘의 말씀"}
-                    </span>
-                    <span>
-                        {todayDate || "오늘"} <Icon name="arrow" />
-                    </span>
+                <div className="home-word">
+                    <button className="week-card" onClick={() => setArea("word")}>
+                        <div className="week-card__top">
+                            <span>
+                                {todayWordStatus === "ready" && todayWord && !todayWord.scriptureText
+                                    ? "오늘의 묵상"
+                                    : "오늘의 말씀"}
+                            </span>
+                            <span>
+                                {todayDate || "오늘"} <Icon name="arrow" />
+                            </span>
+                        </div>
+                        <h2 className="week-card__title">
+                            {todayWordStatus === "loading"
+                                ? "말씀을 불러오는 중이에요"
+                                : todayWordStatus === "ready" && todayWord
+                                  ? todayWord.verse
+                                  : todayWordStatus === "missing"
+                                    ? "오늘 등록된 말씀이 없어요"
+                                    : "말씀을 불러오지 못했어요"}
+                        </h2>
+                        {todayWordStatus === "ready" && todayWord?.scriptureText && (
+                            <div className="week-card__scripture">
+                                <span>말씀 구절</span>
+                                <p>{todayWord.scriptureText}</p>
+                            </div>
+                        )}
+                        <p>
+                            {todayWordStatus === "ready" && todayWord
+                                ? `${todayWord.reference}${todayWord.scriptureText && todayWord.scriptureVersion ? ` · ${scriptureCredit(todayWord.scriptureVersion, todayWord.scriptureAttribution)}` : ""}`
+                                : todayWordStatus === "missing"
+                                  ? "운영자가 말씀을 등록하면 이곳에 보여요"
+                                  : todayWordStatus === "error"
+                                    ? "말씀 화면에서 다시 확인해 주세요"
+                                    : "잠시만 기다려 주세요"}
+                        </p>
+                        <span className="week-card__circle">“</span>
+                    </button>
                 </div>
-                <h2 className="week-card__title">
-                    {todayWordStatus === "loading"
-                        ? "말씀을 불러오는 중이에요"
-                        : todayWordStatus === "ready" && todayWord
-                          ? todayWord.verse
-                          : todayWordStatus === "missing"
-                            ? "오늘 등록된 말씀이 없어요"
-                            : "말씀을 불러오지 못했어요"}
-                </h2>
-                {todayWordStatus === "ready" && todayWord?.scriptureText && (
-                    <div className="week-card__scripture">
-                        <span>말씀 구절</span>
-                        <p>{todayWord.scriptureText}</p>
+                <div className="home-community">
+                    {notices.length > 0 && (
+                        <section className="home-notice" aria-labelledby="home-notice-title">
+                            <span>공지사항</span>
+                            <h2 id="home-notice-title">{notices[0].title}</h2>
+                            <p>{notices[0].body}</p>
+                            <Link className="home-notice-link" href={`/community/notices/${notices[0].id}`}>
+                                공지 자세히 보기 <Icon name="arrow" />
+                            </Link>
+                        </section>
+                    )}
+                    <div className="home-section-heading">
+                        <div>
+                            <h2>교회 소식</h2>
+                        </div>
+                        <Link href="/community/news">
+                            전체 보기 <Icon name="arrow" />
+                        </Link>
                     </div>
-                )}
-                <p>
-                    {todayWordStatus === "ready" && todayWord
-                        ? `${todayWord.reference}${todayWord.scriptureText && todayWord.scriptureVersion ? ` · ${scriptureCredit(todayWord.scriptureVersion, todayWord.scriptureAttribution)}` : ""}`
-                        : todayWordStatus === "missing"
-                          ? "운영자가 말씀을 등록하면 이곳에 보여요"
-                          : todayWordStatus === "error"
-                            ? "말씀 화면에서 다시 확인해 주세요"
-                            : "잠시만 기다려 주세요"}
-                </p>
-                <span className="week-card__circle">“</span>
-            </button>
-            </div>
-            <div className="home-community">
-            {notices.length > 0 && (
-                <section className="home-notice" aria-labelledby="home-notice-title">
-                    <span>공지사항</span>
-                    <h2 id="home-notice-title">{notices[0].title}</h2>
-                    <p>{notices[0].body}</p>
-                    <Link className="home-notice-link" href={`/community/notices/${notices[0].id}`}>공지 자세히 보기 <Icon name="arrow" /></Link>
-                </section>
-            )}
-            <div className="home-section-heading">
-                <div>
-                    <h2>교회 소식</h2>
+                    <Link
+                        className="home-news-card"
+                        href={latestNews ? `/community/news/${latestNews.id}` : "/community/news"}
+                    >
+                        <small>
+                            {latestNews
+                                ? `${newsCategoryLabels[latestNews.category]} · ${newsDate(latestNews.publishedAt)}`
+                                : "우리 공동체의 새로운 이야기"}
+                        </small>
+                        <strong>
+                            {latestNews
+                                ? latestNews.title
+                                : approved
+                                  ? "교회 소식을 확인해 보세요"
+                                  : "가입 승인 후 교회 소식을 볼 수 있어요"}
+                        </strong>
+                        {latestNews && <span>{latestNews.excerpt}</span>}
+                        <Icon name="arrow" />
+                    </Link>
+                    <div className="home-section-heading">
+                        <div>
+                            <h2>오늘의 작은 나눔</h2>
+                        </div>
+                        <button onClick={() => setArea("photos")}>
+                            모두 보기 <Icon name="arrow" />
+                        </button>
+                    </div>
+                    {photo ? (
+                        <button className="home-photo" onClick={() => setArea("photos")}>
+                            <span className="home-photo__art">
+                                {photo.imageUrl ? <img src={photo.imageUrl} alt="" /> : <i />}
+                            </span>
+                            <span>
+                                <small>일상의 기록 · {photo.time}</small>
+                                <strong>{photo.caption}</strong>
+                            </span>
+                            <Icon name="arrow" />
+                        </button>
+                    ) : (
+                        <button className="home-photo home-empty" onClick={() => setArea("photos")}>
+                            첫 일상 사진을 나눠요 <Icon name="arrow" />
+                        </button>
+                    )}
+                    {prayer ? (
+                        <button className="home-prayer" onClick={() => setArea("prayer")}>
+                            <span className="home-prayer__icon">
+                                <Icon name="prayer" />
+                            </span>
+                            <span>
+                                <small>조용한 기도</small>
+                                <strong>{prayer.text}</strong>
+                            </span>
+                            <span className="home-prayer__count">
+                                함께 기도하기 <Icon name="arrow" />
+                            </span>
+                        </button>
+                    ) : (
+                        <button className="home-prayer" onClick={() => setArea("prayer")}>
+                            조용히 기도 제목 나누기 <Icon name="arrow" />
+                        </button>
+                    )}
                 </div>
-                <Link href="/community/news">
-                    전체 보기 <Icon name="arrow" />
-                </Link>
-            </div>
-            <Link className="home-news-card" href={latestNews ? `/community/news/${latestNews.id}` : "/community/news"}>
-                <small>
-                    {latestNews
-                        ? `${newsCategoryLabels[latestNews.category]} · ${newsDate(latestNews.publishedAt)}`
-                        : "우리 공동체의 새로운 이야기"}
-                </small>
-                <strong>
-                    {latestNews
-                        ? latestNews.title
-                        : approved
-                          ? "교회 소식을 확인해 보세요"
-                          : "가입 승인 후 교회 소식을 볼 수 있어요"}
-                </strong>
-                {latestNews && <span>{latestNews.excerpt}</span>}
-                <Icon name="arrow" />
-            </Link>
-            <div className="home-section-heading">
-                <div>
-                    <h2>오늘의 작은 나눔</h2>
-                </div>
-                <button onClick={() => setArea("photos")}>
-                    모두 보기 <Icon name="arrow" />
-                </button>
-            </div>
-            {photo ? (
-                <button className="home-photo" onClick={() => setArea("photos")}>
-                    <span className="home-photo__art">
-                        {photo.imageUrl ? <img src={photo.imageUrl} alt="" /> : <i />}
-                    </span>
-                    <span>
-                        <small>일상의 기록 · {photo.time}</small>
-                        <strong>{photo.caption}</strong>
-                    </span>
-                    <Icon name="arrow" />
-                </button>
-            ) : (
-                <button className="home-photo home-empty" onClick={() => setArea("photos")}>
-                    첫 일상 사진을 나눠요 <Icon name="arrow" />
-                </button>
-            )}
-            {prayer ? (
-                <button className="home-prayer" onClick={() => setArea("prayer")}>
-                    <span className="home-prayer__icon"><Icon name="prayer" /></span>
-                    <span>
-                        <small>조용한 기도</small>
-                        <strong>{prayer.text}</strong>
-                    </span>
-                    <span className="home-prayer__count">
-                        함께 기도하기 <Icon name="arrow" />
-                    </span>
-                </button>
-            ) : (
-                <button className="home-prayer" onClick={() => setArea("prayer")}>
-                    조용히 기도 제목 나누기 <Icon name="arrow" />
-                </button>
-            )}
-            </div>
             </div>
             <div className="home-quote">
                 <span>작은 연결이 하루를 따뜻하게 해요.</span>
@@ -2101,6 +2153,7 @@ function Home({
     );
 }
 
+// 목록이 비었을 때 보여 주는 안내 문구.
 function EmptyState({ title, detail }: { title: string; detail: string }) {
     return (
         <div className="empty-state">

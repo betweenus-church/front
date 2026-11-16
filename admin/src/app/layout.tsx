@@ -19,6 +19,7 @@ export const viewport: Viewport = {
     initialScale: 1,
 };
 
+// 관리자 앱 전체의 HTML 뼈대.
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
         <html lang="ko">

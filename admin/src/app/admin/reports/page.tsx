@@ -29,6 +29,7 @@ type Report = {
 
 type ApiReport = { id: number; kind: "photo" | "word" | "prayer" | "comment"; postId: number; reason: string; excerpt: string | null; createdAt: string; status: "pending" | "resolved"; action: string | null; resolution: string | null };
 const kindLabel = { photo: "사진", word: "말씀", prayer: "기도 나눔", comment: "댓글" };
+// 서버의 신고 데이터를 화면용 형태로 바꾼다.
 const toReport = (item: ApiReport): Report => ({ id: `R-${item.id}`, kind: kindLabel[item.kind], hasPhoto: item.kind === "photo" || item.kind === "comment", target: `${item.kind === "comment" ? "댓글" : "게시물"} · #${item.postId}`, reason: item.reason, excerpt: item.excerpt ?? "신고된 콘텐츠를 찾을 수 없습니다.", receivedAt: new Date(item.createdAt).toLocaleString("ko-KR"), status: item.status === "pending" ? "pending" : item.action === "dismiss" ? "completed" : "deleted", outcome: item.resolution ?? undefined });
 const filters: { id: Filter; label: string }[] = [
     { id: "pending", label: "미처리" },
@@ -43,12 +44,14 @@ const labels: Record<Status, string> = {
     deleted: "게시글 삭제",
 };
 
+// 신고된 사진을 보여 준다. 원본이 없으면 안내 문구를 보여 준다.
 function ReportPhoto({ id }: { id: string }) {
     const [failed, setFailed] = useState(false);
     if (failed) return <p className={styles.imageUnavailable}>사진을 불러올 수 없습니다. 원본이 삭제되었을 수 있어요.</p>;
     return <img className={styles.reportImage} src={`/api/admin/reports/${id.slice(2)}/image`} alt="신고된 게시물 사진" onError={() => setFailed(true)} />;
 }
 
+// 관리자 메뉴 아이콘.
 function Icon({ name }: { name: "grid" | "clipboard" | "warning" | "users" | "settings" }) {
     const paths = {
         grid: (
@@ -99,6 +102,7 @@ function Icon({ name }: { name: "grid" | "clipboard" | "warning" | "users" | "se
     );
 }
 
+// 신고 검토 화면. 신고 목록 확인과 처리를 한다.
 export default function AdminReportsPage() {
     const counts = useAdminCounts();
     const [reports, setReports] = useState<Report[]>([]);
@@ -136,6 +140,7 @@ export default function AdminReportsPage() {
         [reports, filter, query],
     );
 
+    // 필터와 검색을 지우고 신고 목록 처음으로 돌아간다.
     function resetList() {
         setFilter("pending");
         setQuery("");
@@ -143,17 +148,20 @@ export default function AdminReportsPage() {
         setOutcome("");
         setStep("B01");
     }
+    // 목록에서 신고를 골라 상세를 연다.
     function selectReport(id: string) {
         setSelectedId(id);
         setOutcome("");
         setStep("B02");
     }
+    // 신고 처리(숨김/유지 등)를 시작하고 결과 입력 단계로 넘어간다.
     function startAction(next: Action) {
         if (!selected || selected.status !== "pending") return;
         setAction(next);
         setOutcome("");
         setStep("B03");
     }
+    // 선택한 처리 방식으로 신고를 서버에 반영한다.
     async function processReport(next: Action) {
         if (!selected) return;
         const id = selected.id;
@@ -165,6 +173,7 @@ export default function AdminReportsPage() {
             setStep(next === "delete" ? "B06" : "B05");
         } catch { setStep("B08"); }
     }
+    // 처리 결과가 입력됐는지 확인한 뒤 신고를 처리한다.
     function confirmAction() {
         if (!outcome.trim()) {
             setStep("B04");

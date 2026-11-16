@@ -20,8 +20,11 @@ export const newsCategoryLabels: Record<NewsCategory, string> = {
     story: "이야기",
 };
 
+// 소식 날짜를 '2026년 11월 9일' 형태로 바꾼다.
 export function newsDate(value: string | null): string {
     if (!value) return "";
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+    return Number.isNaN(date.getTime())
+        ? ""
+        : date.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 }

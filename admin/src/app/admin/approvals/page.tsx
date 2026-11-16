@@ -42,11 +42,13 @@ const requestDateFormat = new Intl.DateTimeFormat("sv-SE", {
     hourCycle: "h23",
 });
 
+// 가입 신청 시각을 보기 좋은 날짜 문자열로 바꾼다.
 function formatRequestDate(value: string) {
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? value : requestDateFormat.format(date);
 }
 
+// 관리자 메뉴 아이콘.
 function Icon({ name }: { name: "grid" | "clipboard" | "warning" | "users" | "settings" }) {
     const paths = {
         grid: (
@@ -97,6 +99,7 @@ function Icon({ name }: { name: "grid" | "clipboard" | "warning" | "users" | "se
     );
 }
 
+// 가입 승인 화면. 신청 목록 확인, 승인, 거절을 처리한다.
 export default function AdminApprovalsPage() {
     const counts = useAdminCounts();
     const [requests, setRequests] = useState(initialRequests);
@@ -134,11 +137,13 @@ export default function AdminApprovalsPage() {
     const pageItems = visible.slice((page - 1) * 5, page * 5);
     const showingResult = step === "A06" || step === "A08" || step === "A09" || step === "A10";
 
+    // 목록에서 신청을 골라 상세를 연다.
     function selectRequest(id: number) {
         setSelectedId(id);
         setReason("");
         setStep("A02");
     }
+    // 상태 필터(대기/처리 등)를 바꾸고 목록 처음으로 돌아간다.
     function changeFilter(next: Filter) {
         setFilter(next);
         setQuery("");
@@ -146,12 +151,14 @@ export default function AdminApprovalsPage() {
         setSelectedId(null);
         setStep("A01");
     }
+    // 검색어를 바꾸고 목록 처음으로 돌아간다.
     function changeQuery(next: string) {
         setQuery(next);
         setPage(1);
         setSelectedId(null);
         setStep("A01");
     }
+    // 다음 대기 중인 신청으로 넘어간다.
     function nextRequest() {
         const next = requests.find((request) => request.status === "pending" && request.id !== selectedId);
         setFilter("pending");
@@ -161,6 +168,7 @@ export default function AdminApprovalsPage() {
         setSelectedId(next?.id ?? null);
         setStep(next ? "A02" : "A01");
     }
+    // 입력한 사유로 가입 신청을 거절한다.
     async function reject() {
         if (!selected) return;
         try {
@@ -169,6 +177,7 @@ export default function AdminApprovalsPage() {
             setStep("A06");
         } catch { setStep("A10"); }
     }
+    // 가입 신청을 승인한다.
     async function approve() {
         if (!selected || selected.status !== "pending") return;
         const id = selected.id;
@@ -179,6 +188,7 @@ export default function AdminApprovalsPage() {
             setStep("A09");
         } catch { setStep("A10"); }
     }
+    // 거절 사유가 입력됐는지 확인하고 다음 단계로 넘긴다.
     function checkReason() {
         setStep(reason.trim() ? "A05" : "A04");
     }

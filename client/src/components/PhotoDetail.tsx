@@ -6,22 +6,27 @@ import { useChurchStore } from "../store/useChurchStore";
 import styles from "./PhotoDetail.module.scss";
 import MemberAvatar from "./MemberAvatar";
 
+// 뒤로 가기 아이콘.
 function BackIcon() {
     return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>;
 }
 
+// 더보기(…) 아이콘.
 function MoreIcon() {
     return <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg>;
 }
 
+// 좋아요 하트 아이콘. filled면 채워진 하트로 그린다.
 function HeartIcon({ filled }: { filled: boolean }) {
     return <svg viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.8 8.5c0 4.1-5.2 8.6-8.8 11.2C8.4 17.1 3.2 12.6 3.2 8.5a4.8 4.8 0 0 1 8.8-2.6 4.8 4.8 0 0 1 8.8 2.6Z" /></svg>;
 }
 
+// 댓글 보내기 아이콘.
 function SendIcon() {
     return <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.9 3.7a1 1 0 0 0-1.1-.2L3.7 10.3a1 1 0 0 0 .1 1.9l6.5 2 2 6.5a1 1 0 0 0 1.9.1l6.8-16.1a1 1 0 0 0-.1-1Zm-7.3 13.6-1.3-4.2a1 1 0 0 0-.7-.7l-4.2-1.3 10.5-4.4-4.3 10.6Z" /></svg>;
 }
 
+// 사진 상세 화면. 사진, 좋아요, 댓글 작성·수정·삭제를 제공한다.
 export default function PhotoDetail() {
     const router = useRouter();
     const { id } = useParams<{ id: string }>();
@@ -41,6 +46,7 @@ export default function PhotoDetail() {
     useEffect(() => { void syncSession().then(() => setReady(true)); }, [syncSession]);
     useEffect(() => { if (ready && mustChangePassword) router.replace("/change-password"); }, [ready, mustChangePassword, router]);
 
+    // 승인 전 회원이면 승인 안내 창을 띄우고 false를 돌려준다.
     function requireApproval() {
         if (isPreview) {
             setNoticeOpen(true);
@@ -49,16 +55,19 @@ export default function PhotoDetail() {
         return true;
     }
 
+    // 댓글을 등록한다.
     async function submitComment(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!requireApproval() || !photo || !comment.trim()) return;
         if (await addPhotoComment(photo.id, comment.trim(), name.trim() || "나")) setComment("");
     }
 
+    // 사진 목록으로 돌아간다.
     function goBack() {
         router.push("/community/photos");
     }
 
+    // 수정한 댓글을 저장한다.
     async function saveEditedComment(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!requireApproval() || !photo || editingCommentId === null || !editDraft.trim()) return;

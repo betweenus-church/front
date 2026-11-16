@@ -6,8 +6,10 @@ import styles from "./PushTimePicker.module.scss";
 
 const hours = Array.from({ length: 12 }, (_, index) => index + 1);
 const minutes = Array.from({ length: 60 }, (_, index) => index);
+// 숫자를 두 자리 문자열로 바꾼다(예: 7 → "07").
 const twoDigits = (value: number) => String(value).padStart(2, "0");
 
+// 푸시 발송 시각(오전/오후, 시, 분)을 고르는 선택기.
 export default function PushTimePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
     const [open, setOpen] = useState(false);
     const trigger = useRef<HTMLButtonElement>(null);
@@ -20,6 +22,7 @@ export default function PushTimePicker({ value, onChange }: { value: string; onC
 
     useEffect(() => {
         if (!open) return;
+        // Esc를 누르면 선택기를 닫는다.
         const closeEscape = (event: KeyboardEvent) => {
             if (event.key === "Escape") { setOpen(false); trigger.current?.focus(); }
         };
@@ -37,6 +40,7 @@ export default function PushTimePicker({ value, onChange }: { value: string; onC
         }
     }, [open]);
 
+    // 고른 오전/오후·시·분을 24시간 'HH:MM'으로 바꿔 전달한다.
     function select(nextPeriod = period, nextHour = hour12, nextMinute = minute) {
         const nextHour24 = (nextHour % 12) + (nextPeriod === "pm" ? 12 : 0);
         onChange(`${twoDigits(nextHour24)}:${twoDigits(nextMinute)}`);

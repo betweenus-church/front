@@ -41,8 +41,10 @@ type Member = {
 type Draft = Pick<Member, "name" | "phone" | "church">;
 
 type ApiMember = { id: number; name: string; phone: string; church: string; status: "approved" | "suspended"; joined: string; restrictionReason: string | null };
+// 서버의 회원 데이터를 화면용 형태로 바꾼다.
 const toMember = (item: ApiMember): Member => ({ ...item, status: item.status === "approved" ? "active" : "limited", joined: new Date(item.joined).toLocaleDateString("ko-KR"), restrictionReason: item.restrictionReason ?? undefined });
 const statusLabel: Record<Status, string> = { active: "활동", pending: "승인 대기", limited: "이용 제한" };
+// 전화번호를 010-1234-5678 형태로 바꾼다.
 const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 11);
     if (digits.length <= 3) return digits;
@@ -50,6 +52,7 @@ const formatPhone = (value: string) => {
     return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
 };
 
+// 관리자 메뉴 아이콘.
 function Icon({ name }: { name: "grid" | "clipboard" | "warning" | "users" | "settings" }) {
     const paths = {
         grid: (
@@ -100,6 +103,7 @@ function Icon({ name }: { name: "grid" | "clipboard" | "warning" | "users" | "se
     );
 }
 
+// 구성원 관리 화면. 회원 정보 수정, 이용 제한, 비밀번호 초기화를 처리한다.
 export default function AdminPeoplePage() {
     const counts = useAdminCounts();
     const [members, setMembers] = useState<Member[]>([]);
@@ -138,6 +142,7 @@ export default function AdminPeoplePage() {
         [members, filter, query],
     );
 
+    // 필터와 검색을 지우고 회원 목록 처음으로 돌아간다.
     function resetList() {
         setFilter("all");
         setQuery("");
@@ -146,6 +151,7 @@ export default function AdminPeoplePage() {
         setFieldError("");
         setStep("M01");
     }
+    // 목록에서 회원을 골라 상세를 연다.
     function selectMember(id: number) {
         const member = members.find((item) => item.id === id);
         if (!member) return;
@@ -158,6 +164,7 @@ export default function AdminPeoplePage() {
         setResetError("");
         setStep(member.status === "limited" ? "M11" : "M02");
     }
+    // 회원의 로그인 비밀번호를 임시 비밀번호로 초기화한다.
     async function resetLoginPassword() {
         if (!selected || busy) return;
         setBusy(true);
@@ -172,12 +179,14 @@ export default function AdminPeoplePage() {
                 : "임시 비밀번호를 발급하지 못했어요. 다시 시도해 주세요.");
         } finally { setBusy(false); }
     }
+    // 회원 정보 수정 화면을 연다.
     function startEdit() {
         if (!selected) return;
         setDraft({ name: selected.name, phone: selected.phone, church: selected.church });
         setFieldError("");
         setStep("M03");
     }
+    // 수정한 이름·전화번호·교회명을 검사한다.
     function validateEdit() {
         if (!draft.name.trim() || !draft.church.trim() || !/^01[016789]-\d{4}-\d{4}$/.test(draft.phone)) {
             setFieldError("이름·교회명과 올바른 전화번호를 입력해 주세요.");
@@ -186,6 +195,7 @@ export default function AdminPeoplePage() {
         setFieldError("");
         setStep("M04");
     }
+    // 정보 수정, 이용 제한, 제한 해제를 서버에 반영한다.
     async function commit(action: Action) {
         if (!selected || busy) return;
         const id = selected.id;
@@ -199,10 +209,12 @@ export default function AdminPeoplePage() {
         } catch { setStep(action === "edit" ? "M06" : "M10"); }
         finally { setBusy(false); }
     }
+    // 이용 제한 또는 제한 해제 사유 입력을 시작한다.
     function startRestriction(action: "restrict" | "unrestrict") {
         setReason("");
         setStep(action === "restrict" ? "M07" : "M12");
     }
+    // 사유가 입력됐는지 확인한 뒤 제한/해제를 진행한다.
     function validateReason(action: "restrict" | "unrestrict") {
         if (!reason.trim()) {
             setStep(action === "restrict" ? "M08" : "M13");

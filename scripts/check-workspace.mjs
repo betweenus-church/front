@@ -3,6 +3,7 @@ import {readFileSync,readdirSync,existsSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 const root=process.cwd();
+// 폴더 안의 모든 파일 경로를 재귀로 모은다.
 const walk=dir=>readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(dir,e.name)):[path.join(dir,e.name)]);
 for(const app of ['client','admin']){
  const require=createRequire(path.join(root,app,'package.json'));

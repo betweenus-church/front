@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import SplashScreen from "../components/SplashScreen";
 import { useChurchStore } from "../store/useChurchStore";
 
+// 첫 화면(/). 로그인 상태를 확인한 뒤 알맞은 화면으로 보낸다.
 export default function SplashPage() {
     const router = useRouter();
     const syncSession = useChurchStore((state) => state.syncSession);

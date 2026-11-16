@@ -1,3 +1,4 @@
+// 앱 시작 로딩 화면. 오류가 있으면 다시 시도 버튼을 보여 준다.
 export default function SplashScreen({ error, onRetry }: { error?: string; onRetry?: () => void }) {
     return (
         <main className="splash" aria-live="polite">

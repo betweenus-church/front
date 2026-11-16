@@ -25,11 +25,13 @@ const environment = {
   NEXT_TELEMETRY_DISABLED: "1",
 };
 const apps = [ ["admin", adminPort], ["client", clientPort] ];
+// client 또는 admin 앱에서 next 명령(build/start)을 실행한다.
 function launch(app, args) {
   const cwd = path.join(root, app);
   const cli = createRequire(path.join(cwd, "package.json")).resolve("next/dist/bin/next");
   return spawn(process.execPath, [cli, ...args], { cwd, env: environment, stdio: "inherit", windowsHide: true });
 }
+// 포트가 비어 있는지 확인한다. 이미 쓰이고 있으면 오류가 난다.
 async function available(port) {
   const server = net.createServer();
   await new Promise((resolve, reject) => { server.once("error", reject); server.listen(port, "127.0.0.1", resolve); });
@@ -50,6 +52,7 @@ if (action === "build") {
   mkdirSync(path.dirname(stateFile), { recursive: true });
   writeFileSync(stateFile, JSON.stringify({ pid: process.pid, origin, clientPort, adminPort, children: children.map(child => child.pid) }, null, 2));
   let stopping = false;
+  // 실행 중인 두 앱을 끄고 process.json 기록을 지운다.
   function stop(code) {
     if (stopping) return;
     stopping = true;

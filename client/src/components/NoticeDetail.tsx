@@ -10,6 +10,7 @@ import styles from "./NewsPage.module.scss";
 
 type Notice = { id: number; title: string; body: string; createdAt: string };
 
+// 공지사항 상세 화면.
 export default function NoticeDetail() {
     const { id } = useParams<{ id: string }>();
     const { name, church, sessionReady, membershipStatus, mustChangePassword, syncSession } = useChurchStore();

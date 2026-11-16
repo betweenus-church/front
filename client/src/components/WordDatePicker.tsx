@@ -11,11 +11,13 @@ type Props = {
 
 const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
 
+// 'YYYY-MM' 달에서 amount만큼 앞뒤 달을 계산한다.
 function moveMonth(month: string, amount: number) {
     const [year, number] = month.split("-").map(Number);
     return new Date(Date.UTC(year, number - 1 + amount, 1)).toISOString().slice(0, 7);
 }
 
+// 말씀 날짜를 고르는 달력 팝업.
 export default function WordDatePicker({ value, maxDate, onChange }: Props) {
     const selected = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : maxDate || churchToday();
     const [open, setOpen] = useState(false);
@@ -26,9 +28,11 @@ export default function WordDatePicker({ value, maxDate, onChange }: Props) {
     useEffect(() => {
         if (!open) return;
         setMonth(selected.slice(0, 7));
+        // 달력 바깥을 누르면 달력을 닫는다.
         const onPointerDown = (event: PointerEvent) => {
             if (!root.current?.contains(event.target as Node)) setOpen(false);
         };
+        // Esc를 누르면 달력을 닫고 날짜 버튼으로 포커스를 돌린다.
         const onKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 setOpen(false);

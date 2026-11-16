@@ -7,6 +7,7 @@ type InstallPrompt = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+// 앱 설치(PWA) 버튼. 설치 창을 띄우거나, 지원하지 않는 기기에는 설치 방법을 안내한다.
 export default function InstallAppButton({ compact = false }: { compact?: boolean }) {
   const prompt = useRef<InstallPrompt | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -18,10 +19,12 @@ export default function InstallAppButton({ compact = false }: { compact?: boolea
       (navigator as Navigator & { standalone?: boolean }).standalone === true);
     setIos(/iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1));
+    // 브라우저의 설치 제안 이벤트를 저장해 두었다가 버튼을 누를 때 쓴다.
     const onPrompt = (event: Event) => {
       event.preventDefault();
       prompt.current = event as InstallPrompt;
     };
+    // 앱 설치가 끝나면 설치 완료 상태로 바꾸고 안내 창을 닫는다.
     const onInstalled = () => { prompt.current = null; setInstalled(true); setGuideOpen(false); };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
@@ -31,6 +34,7 @@ export default function InstallAppButton({ compact = false }: { compact?: boolea
     };
   }, []);
 
+  // 설치 버튼을 눌렀을 때 설치 창을 띄운다. 설치 창이 없으면 안내 창을 연다.
   async function install() {
     if (installed) return;
     if (!prompt.current) { setGuideOpen(true); return; }

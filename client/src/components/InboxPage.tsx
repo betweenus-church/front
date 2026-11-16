@@ -24,16 +24,19 @@ const kindLabels: Record<InboxItem["kind"], string> = {
     announcement: "운영자 알림",
 };
 
+// 알림 링크가 앱 안의 허용된 주소일 때만 쓰고, 아니면 홈으로 보낸다.
 function itemUrl(url: string) {
     // The API supplies paths, never arbitrary external URLs or auth routes.
     return /^\/community\/(?:home|word|photos|prayer|news|notices|inbox|me)(?:[/?#]|$)/.test(url) ? url : "/community/home";
 }
 
+// 알림 시각을 '11월 9일 오후 3:00' 형태로 바꾼다.
 function dateLabel(value: string) {
     const date = new Date(value);
     return Number.isNaN(date.valueOf()) ? "" : new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", hour: "numeric", minute: "2-digit" }).format(date);
 }
 
+// 알림함 화면. 알림 목록, 읽음 처리, 모두 읽음을 제공한다.
 export default function InboxPage({ onUnreadChange }: { onUnreadChange: (count: number) => void }) {
     const router = useRouter();
     const [items, setItems] = useState<InboxItem[]>([]);
@@ -43,6 +46,7 @@ export default function InboxPage({ onUnreadChange }: { onUnreadChange: (count: 
     const [allBusy, setAllBusy] = useState(false);
     const [actionError, setActionError] = useState("");
 
+    // 서버에서 알림 목록과 안 읽은 수를 불러온다.
     async function load() {
         setStatus("loading");
         try {
@@ -58,6 +62,7 @@ export default function InboxPage({ onUnreadChange }: { onUnreadChange: (count: 
 
     useEffect(() => { void load(); }, []);
 
+    // 알림을 누르면 읽음 처리한 뒤 해당 화면으로 이동한다.
     async function openItem(item: InboxItem) {
         if (busyId !== null) return;
         setActionError("");
@@ -78,6 +83,7 @@ export default function InboxPage({ onUnreadChange }: { onUnreadChange: (count: 
         router.push(itemUrl(item.url));
     }
 
+    // 모든 알림을 읽음으로 처리한다.
     async function readAll() {
         setAllBusy(true);
         setActionError("");

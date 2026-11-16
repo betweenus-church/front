@@ -21,6 +21,7 @@ export const viewport: Viewport = {
     initialScale: 1,
 };
 
+// 사용자 앱 전체의 HTML 뼈대. 모든 화면이 이 안에 그려진다.
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
         <html lang="ko">

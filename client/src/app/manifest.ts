@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+// 앱 설치(PWA)용 manifest. 앱 이름, 아이콘, 시작 주소를 정한다.
 export default function manifest(): MetadataRoute.Manifest {
     return {
         id: "/",

@@ -3,6 +3,7 @@
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { api, json } from "@sai/shared/api";
 
+// 관리자 화면 공통 틀. 로그인 확인 후 관리자에게만 화면을 보여 준다.
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [allowed, setAllowed] = useState(false);
@@ -14,6 +15,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     void api("/auth/admin/me").then(() => setAllowed(true)).catch(() => setAllowed(false)).finally(() => setReady(true));
   }, []);
 
+  // 관리자 로그인 폼 제출.
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {

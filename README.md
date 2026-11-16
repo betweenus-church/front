@@ -92,7 +92,7 @@ import "@sai/ui/base.css";
 - 배포 시 각 앱을 별도로 빌드·실행하고 위 origin들을 실제 주소로 맞춥니다. production에서 ADMIN_URL을 지정하지 않으면 사용자 앱의 관리자 이전 주소 redirect는 생성하지 않습니다.
 - back: FRONTEND_ORIGIN에 사용자 앱 origin, ADMIN_ORIGIN에 관리자 origin을 명시합니다. 외부 origin 차단은 유지합니다.
 
-현재 로컬 back은 .env.test로 실행하며 이 앱 분리를 위한 별도 .test-data/client-admin DB를 사용합니다. 기존 미리보기 DB와 운영 DB는 보존했습니다. 운영 서버 배포는 수행하지 않았습니다.
+개발 API는 바탕화면 back의 .env.test(4100)를 사용합니다. 운영 API는 같은 back의 .env와 dist-production/main.js(4000)를 사용합니다. 운영 데이터와 첨부파일은 E: 드라이브의 기존 경로를 유지합니다.
 
 ## 검증 범위
 
@@ -103,3 +103,12 @@ import "@sai/ui/base.css";
 ## 현재 적용한 디자인
 
 CHZZK 레퍼런스의 #141517 배경, #00e693 주요 액션과 #dfe2ea 본문을 실제 client/admin에 적용했습니다. 공통 토큰·기본 요소·버튼·입력·포커스는 packages/ui, 사용자 화면 배치는 client/src/app/chzzk-theme.css와 sai-ui.css, 관리자 화면 스타일은 admin에 있습니다. 하이드레이션 body 호환 처리는 두 앱 루트 레이아웃에 유지합니다.
+
+## 현재 단일 서버 운영
+
+실제 운영 코드는 바탕화면 front와 back입니다. 공개 주소 https://junsee.tail1d9293.ts.net 에서 사용자 앱과 /admin 관리자 앱을 함께 제공합니다.
+
+- front: `pnpm build:server` 후 `pnpm start:server`; 종료는 `pnpm stop:server`. .env.server에 공개 주소와 API_INTERNAL_URL=http://127.0.0.1:4000을 설정합니다.
+- back: `npm run build:production` 후 `npm run start:production`. 기존 운영 DB와 비밀 설정은 back/.env를 사용합니다.
+- 사용자 앱 3101 → 관리자 경로 3102, API 경로 4000. Tailscale 공개 연결 대상은 127.0.0.1:3101입니다.
+- 각 명령은 해당 프로젝트 폴더에서 실행하며, 이미 실행 중인 포트에 서버를 중복 실행하지 않습니다. PC 자동 시작은 별도 설정이 필요합니다.

@@ -597,6 +597,7 @@ textarea::placeholder {
 .home-news-card span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .home-news-card > svg { position: absolute; top: 50%; transform: translateY(-50%); }
 .word-date-nav {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--space-xs);
@@ -624,7 +625,7 @@ textarea::placeholder {
     cursor: not-allowed;
 }
 .word-date-picker {
-    position: relative;
+    position: static;
     flex: 1 1 180px;
     max-width: 240px;
 }
@@ -671,10 +672,9 @@ textarea::placeholder {
     position: absolute;
     z-index: 30;
     top: calc(100% + 10px);
-    left: 50%;
-    width: min(312px, calc(100% - 32px));
-    padding: var(--space-md);
-    transform: translateX(-50%);
+    left: 0;
+    width: min(360px, 100%);
+    padding: var(--space-sm);
     background: var(--white);
 }
 .word-calendar-header {
@@ -711,8 +711,13 @@ textarea::placeholder {
     font-weight: 700;
 }
 .word-calendar-day {
+    display: grid;
+    place-items: center;
     min-width: 0;
-    height: 34px;
+    width: 100%;
+    min-height: 44px;
+    height: 44px;
+    padding: 0;
     border: 0;
     border-radius: 10px;
     background: transparent;

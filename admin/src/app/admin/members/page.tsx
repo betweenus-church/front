@@ -50,6 +50,7 @@ const iconPaths: Record<IconName, React.ReactNode> = {
         </>
     ),
 };
+// 관리자 메뉴 아이콘.
 function Icon({ name }: { name: IconName }) {
     return (
         <svg
@@ -76,12 +77,14 @@ const menu: { label: string; icon: IconName }[] = [
     { label: "운영 설정", icon: "settings" },
 ];
 
+// 운영 현황 대시보드. 대기 건수와 각 관리 메뉴로 가는 길을 보여 준다.
 export default function AdminDashboardPage() {
     const router = useRouter();
     const [showAll, setShowAll] = useState(false);
     const [notice, setNotice] = useState("");
     const [dashboard, setDashboard] = useState<Dashboard | null>(null);
     useEffect(() => { void api<Dashboard>("/admin/dashboard").then(setDashboard).catch(() => setNotice("운영 현황을 불러오지 못했어요.")); }, []);
+    // 대시보드 카드 이름에 맞는 관리 화면으로 이동한다.
     const openSection = (name: string) => {
         if (name === "가입 승인") router.push("/admin/approvals");
         else if (name === "신고 검토") router.push("/admin/reports");

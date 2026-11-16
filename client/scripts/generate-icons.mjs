@@ -4,6 +4,7 @@ import { deflateSync } from "node:zlib";
 const green = [56, 107, 86];
 const gold = [226, 189, 115];
 
+// PNG 파일 조각에 넣을 CRC32 체크섬을 계산한다.
 function crc32(bytes) {
   let crc = 0xffffffff;
   for (const byte of bytes) {
@@ -13,6 +14,7 @@ function crc32(bytes) {
   return (crc ^ 0xffffffff) >>> 0;
 }
 
+// PNG 파일의 한 조각(chunk)을 만든다.
 function chunk(type, data) {
   const name = Buffer.from(type);
   const size = Buffer.alloc(4);
@@ -22,6 +24,7 @@ function chunk(type, data) {
   return Buffer.concat([size, name, data, checksum]);
 }
 
+// 사이 로고 아이콘 PNG를 지정한 크기로 직접 그려 만든다.
 function png(size, maskable = false, badge = false) {
   const scale = 3;
   const rows = Buffer.alloc((size * 4 + 1) * size);
@@ -43,6 +46,7 @@ function png(size, maskable = false, badge = false) {
         })());
         if (outside) continue;
         alphaSamples++;
+        // 현재 픽셀이 로고의 기울어진 고리 안에 있는지 확인한다.
         const inRing = (cx) => {
           const a = -36 * Math.PI / 180;
           const dx = nx - cx;

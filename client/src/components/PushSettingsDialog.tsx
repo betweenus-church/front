@@ -12,12 +12,14 @@ type Config = {
   publicKey: string;
 };
 
+// 서버의 푸시 공개키(base64url)를 브라우저가 쓰는 바이트 형식으로 바꾼다.
 function applicationKey(value: string) {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
   const decoded = atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "="));
   return Uint8Array.from(decoded, (character) => character.charCodeAt(0)).buffer;
 }
 
+// 기존 푸시 구독이 현재 서버 공개키로 만들어졌는지 확인한다.
 function usesKey(subscription: PushSubscription, publicKey: string) {
   const current = subscription.options.applicationServerKey;
   if (!current) return false;
@@ -26,6 +28,7 @@ function usesKey(subscription: PushSubscription, publicKey: string) {
   return actual.length === expected.length && actual.every((byte, index) => byte === expected[index]);
 }
 
+// 알림(푸시) 설정 창. 이 기기의 알림 켜기·끄기를 관리한다.
 export default function PushSettingsDialog({ onClose }: { onClose: () => void }) {
   const [config, setConfig] = useState<Config | null>(null);
   const [subscribed, setSubscribed] = useState(false);
@@ -65,6 +68,7 @@ export default function PushSettingsDialog({ onClose }: { onClose: () => void })
     return () => { active = false; };
   }, [supported]);
 
+  // 알림 권한을 받고 이 기기를 푸시 구독으로 서버에 등록한다.
   async function enable() {
     if (!registration.current || !config?.publicKey) return;
     setBusy(true);
@@ -97,6 +101,7 @@ export default function PushSettingsDialog({ onClose }: { onClose: () => void })
     }
   }
 
+  // 이 기기의 푸시 구독을 해제하고 서버에서도 지운다.
   async function disable() {
     if (!registration.current) return;
     setBusy(true);
