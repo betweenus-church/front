@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { ChangeEvent, FormEvent, ReactNode, useEffect, useRef, useState } from "react";
@@ -7,6 +9,7 @@ import { Area, useChurchStore } from "../store/useChurchStore";
 import { ApiError, api } from "@sai/shared/api";
 import { churchToday, displayDate, scriptureCredit, shiftDate, type DailyWord } from "@sai/shared/daily-word";
 import WordDatePicker from "./WordDatePicker";
+import { takeDailyWord } from "../lib/daily-word-prefetch";
 import type { WordPost } from "../store/useChurchStore";
 import { NewsItem, newsCategoryLabels, newsDate } from "@sai/shared/news";
 import MemberAvatar from "./MemberAvatar";
@@ -292,8 +295,10 @@ export default function Page() {
         return true;
     }
 
+    // 시작 화면에서 이미 로그인 확인을 했으면 다시 요청하지 않는다.
+    // 새로고침하거나 주소로 바로 들어온 경우에만 여기서 확인한다.
     useEffect(() => {
-        void syncSession();
+        if (!useChurchStore.getState().sessionReady) void syncSession();
     }, [syncSession]);
 
     useEffect(() => {
@@ -342,8 +347,12 @@ export default function Page() {
         if (!todayDate || area !== "home") return;
         const controller = new AbortController();
         setTodayWordStatus("loading");
-        void api<DailyWord>(`/daily-word?date=${todayDate}`, { signal: controller.signal })
+        // 시작 화면에서 미리 보낸 요청이 있으면 그 결과를 쓰고, 없으면 새로 요청한다.
+        const request =
+            takeDailyWord(todayDate) ?? api<DailyWord>(`/daily-word?date=${todayDate}`, { signal: controller.signal });
+        void request
             .then((value) => {
+                if (controller.signal.aborted) return;
                 setTodayWord(value);
                 setTodayWordStatus("ready");
             })

@@ -124,8 +124,10 @@ export const useChurchStore = create<ChurchState>()(
         (set, get) => {
             let authRevision = 0;
             // 커뮤니티 데이터(말씀·사진·기도·공지 등)를 서버에서 다시 불러온다.
-            async function refresh() {
+            // isCurrent가 false를 돌려주면(그사이 로그아웃 등) 받은 데이터를 버린다.
+            async function refresh(isCurrent: () => boolean = () => true) {
                 const snapshot = await api<Snapshot>("/community");
+                if (!isCurrent()) return;
                 set({ ...snapshot, apiError: "" });
             }
             // 변경 요청을 보내고 데이터를 새로 불러온 뒤 완료 문구를 띄운다. 성공 여부를 돌려준다.
@@ -181,12 +183,21 @@ export const useChurchStore = create<ChurchState>()(
                             apiError: "",
                         });
                         if (profile.status === "approved" && !profile.mustChangePassword) {
-                            try {
-                                await refresh();
-                            } catch (error) {
-                                if (!passwordChangeRequired(error)) throw error;
-                                set({ mustChangePassword: true, photos: [], prayers: [], wordPosts: [], notices: [] });
-                            }
+                            // 커뮤니티 데이터는 기다리지 않고 받는다. 실패 처리는 여기서 따로 한다.
+                            // 그사이 로그아웃·재로그인했으면 늦게 온 결과는 성공·실패 모두 버린다.
+                            const isCurrent = () => revision === authRevision;
+                            void refresh(isCurrent).catch((error: unknown) => {
+                                if (!isCurrent()) return;
+                                if (passwordChangeRequired(error)) {
+                                    set({
+                                        mustChangePassword: true,
+                                        photos: [],
+                                        prayers: [],
+                                        wordPosts: [],
+                                        notices: [],
+                                    });
+                                } else set({ apiError: errorMessage(error) });
+                            });
                         } else set({ photos: [], prayers: [], wordPosts: [], notices: [] });
                         return profile.status;
                     } catch (error) {
@@ -318,7 +329,7 @@ export const useChurchStore = create<ChurchState>()(
                     }
                 },
                 // 커뮤니티 데이터를 다시 불러온다(refresh와 같음).
-                loadCommunity: refresh,
+                loadCommunity: () => refresh(),
                 // 기도 제목을 등록한다.
                 addPrayer: (text) => change("/prayers", json("POST", { text }), "기도 제목을 나눴어요."),
                 // '함께 기도해요'를 누르거나 취소한다.
