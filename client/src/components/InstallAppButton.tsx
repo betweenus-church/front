@@ -1,28 +1,51 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 type InstallPrompt = Event & {
     prompt: () => Promise<void>;
     userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+// 바뀌지 않는 기기 정보를 읽을 때 쓰는 빈 구독.
+function subscribeNothing() {
+    return () => {};
+}
+
+// 설치된 앱으로 실행하는지가 바뀌면 다시 읽도록 구독한다.
+function subscribeDisplayMode(onChange: () => void) {
+    const query = window.matchMedia("(display-mode: standalone)");
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+}
+
+// 홈 화면에 설치한 앱으로 실행 중인지 확인한다.
+function isStandalone() {
+    return (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (navigator as Navigator & { standalone?: boolean }).standalone === true
+    );
+}
+
+// 아이폰·아이패드인지 확인한다(설치 안내 문구가 다르다).
+function isIosDevice() {
+    return (
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
+    );
+}
+
 // 앱 설치(PWA) 버튼. 설치 창을 띄우거나, 지원하지 않는 기기에는 설치 방법을 안내한다.
 export default function InstallAppButton({ compact = false }: { compact?: boolean }) {
     const prompt = useRef<InstallPrompt | null>(null);
     const [guideOpen, setGuideOpen] = useState(false);
-    const [installed, setInstalled] = useState(false);
-    const [ios, setIos] = useState(false);
+    // 서버에서 그릴 때는 기기 정보를 모르므로 false로 두고, 브라우저에서 실제 값으로 바뀐다.
+    const standalone = useSyncExternalStore(subscribeDisplayMode, isStandalone, () => false);
+    const ios = useSyncExternalStore(subscribeNothing, isIosDevice, () => false);
+    const [justInstalled, setJustInstalled] = useState(false);
+    const installed = standalone || justInstalled;
 
     useEffect(() => {
-        setInstalled(
-            window.matchMedia("(display-mode: standalone)").matches ||
-                (navigator as Navigator & { standalone?: boolean }).standalone === true,
-        );
-        setIos(
-            /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1),
-        );
         // 브라우저의 설치 제안 이벤트를 저장해 두었다가 버튼을 누를 때 쓴다.
         const onPrompt = (event: Event) => {
             event.preventDefault();
@@ -31,7 +54,7 @@ export default function InstallAppButton({ compact = false }: { compact?: boolea
         // 앱 설치가 끝나면 설치 완료 상태로 바꾸고 안내 창을 닫는다.
         const onInstalled = () => {
             prompt.current = null;
-            setInstalled(true);
+            setJustInstalled(true);
             setGuideOpen(false);
         };
         window.addEventListener("beforeinstallprompt", onPrompt);
@@ -53,7 +76,7 @@ export default function InstallAppButton({ compact = false }: { compact?: boolea
         prompt.current = null;
         await event.prompt();
         const choice = await event.userChoice;
-        if (choice.outcome === "accepted") setInstalled(true);
+        if (choice.outcome === "accepted") setJustInstalled(true);
     }
 
     return (

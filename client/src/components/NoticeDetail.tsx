@@ -15,33 +15,33 @@ export default function NoticeDetail() {
     const { id } = useParams<{ id: string }>();
     const { name, church, sessionReady, membershipStatus, mustChangePassword, syncSession } = useChurchStore();
     const [notice, setNotice] = useState<Notice | null>(null);
-    const [state, setState] = useState<"loading" | "ready" | "error" | "missing">("loading");
+    // 마지막으로 끝난 요청(공지 번호·다시 시도 횟수)과 그 결과. 지금 화면의 요청과 같을 때만 결과로 쓴다.
+    const [loaded, setLoaded] = useState<{ key: string; status: "ready" | "error" | "missing" } | null>(null);
     const [revision, setRevision] = useState(0);
     const approved = sessionReady && membershipStatus === "approved" && !mustChangePassword;
+    const noticeId = Number(id);
+    const validId = Number.isSafeInteger(noticeId) && noticeId > 0;
+    const requestKey = `${noticeId}:${revision}`;
+    // 화면 상태는 effect에서 따로 바꾸지 않고, 주소와 마지막 결과로 계산한다.
+    const state = !validId ? "missing" : loaded?.key === requestKey ? loaded.status : "loading";
 
     useEffect(() => {
         void syncSession();
     }, [syncSession]);
     useEffect(() => {
-        if (!approved) return;
-        const noticeId = Number(id);
-        if (!Number.isSafeInteger(noticeId) || noticeId <= 0) {
-            setState("missing");
-            return;
-        }
+        if (!approved || !validId) return;
         const controller = new AbortController();
-        setState("loading");
         void api<Notice>(`/notices/${noticeId}`, { signal: controller.signal })
             .then((item) => {
                 setNotice(item);
-                setState("ready");
+                setLoaded({ key: requestKey, status: "ready" });
             })
             .catch((error: { status?: number }) => {
                 if (controller.signal.aborted) return;
-                setState(error.status === 404 ? "missing" : "error");
+                setLoaded({ key: requestKey, status: error.status === 404 ? "missing" : "error" });
             });
         return () => controller.abort();
-    }, [approved, id, revision]);
+    }, [approved, validId, noticeId, requestKey]);
 
     return (
         <div className={styles.shell}>

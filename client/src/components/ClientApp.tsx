@@ -10,6 +10,7 @@ import { ApiError, api } from "@sai/shared/api";
 import { churchToday, displayDate, scriptureCredit, shiftDate, type DailyWord } from "@sai/shared/daily-word";
 import WordDatePicker from "./WordDatePicker";
 import { takeDailyWord } from "../lib/daily-word-prefetch";
+import { useBackToExit } from "../lib/use-back-to-exit";
 import type { WordPost } from "../store/useChurchStore";
 import { NewsItem, newsCategoryLabels, newsDate } from "@sai/shared/news";
 import MemberAvatar from "./MemberAvatar";
@@ -17,6 +18,9 @@ import PushSettingsDialog from "./PushSettingsDialog";
 import InstallAppButton from "./InstallAppButton";
 import SplashScreen from "./SplashScreen";
 import InboxPage, { type InboxResponse } from "./InboxPage";
+
+// 하단 탭과 알림함처럼 메인 앱 화면 안에서 바뀌는 주소(/community/○○).
+const tabAreas = new Set<string>(["home", "word", "photos", "prayer", "me", "inbox"]);
 
 const navItems: { id: Area; label: string; icon: string }[] = [
     { id: "home", label: "홈", icon: "home" },
@@ -218,6 +222,10 @@ export default function Page() {
         notify,
     } = useChurchStore();
     const area = (pathname.split("/")[2] as Area) || storedArea;
+    // 탭을 누른 순간 하단 메뉴 표시를 먼저 바꾸기 위한 값. 주소가 바뀌면 비운다.
+    const [pendingArea, setPendingArea] = useState<Area | null>(null);
+    const navArea = pendingArea ?? area;
+    const isTabPage = /^\/community\/[^/]+$/.test(pathname) && tabAreas.has(area);
     const isPreview = !sessionReady || membershipStatus !== "approved" || mustChangePassword;
     const route =
         pathname === "/start"
@@ -236,9 +244,11 @@ export default function Page() {
         router.push(`/${next}`);
     }
     // 아래 탭(홈/말씀/사진/기도/내 공간)을 바꾸고 해당 주소로 이동한다.
+    // 탭 이동은 기록을 쌓지 않는다(replace). 뒤로가기는 useBackToExit가 홈 이동·종료로 처리한다.
     function setArea(next: Area) {
         setStoredArea(next);
-        router.push(`/community/${next}`);
+        setPendingArea(next);
+        router.replace(`/community/${next}`);
     }
     const [consent, setConsent] = useState(false);
     const [phone, setPhone] = useState("");
@@ -346,7 +356,8 @@ export default function Page() {
     useEffect(() => {
         if (!todayDate || area !== "home") return;
         const controller = new AbortController();
-        setTodayWordStatus("loading");
+        // 탭을 오가며 홈에 돌아왔을 때 이미 보이던 말씀은 그대로 두고 뒤에서 새로 받는다.
+        setTodayWordStatus((current) => (current === "ready" ? current : "loading"));
         // 시작 화면에서 미리 보낸 요청이 있으면 그 결과를 쓰고, 없으면 새로 요청한다.
         const request =
             takeDailyWord(todayDate) ?? api<DailyWord>(`/daily-word?date=${todayDate}`, { signal: controller.signal });
@@ -458,6 +469,27 @@ export default function Page() {
         setShowToast(false);
         notify("");
     }, [pathname, notify]);
+
+    // 주소가 바뀌면 누른 탭 표시값을 비운다(이제 주소가 기준).
+    useEffect(() => {
+        setPendingArea(null);
+    }, [pathname]);
+
+    // 탭 화면이 그대로 유지되므로, 다른 탭으로 바뀔 때 맨 위로 올린다.
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [area]);
+
+    // 설치된 앱에서 뒤로가기: 홈이 아닌 탭이면 홈으로, 홈이면 두 번 연속 눌러야 종료한다.
+    useBackToExit({
+        enabled: sessionReady && isTabPage,
+        pathname,
+        goHome: () => {
+            setStoredArea("home");
+            router.replace("/community/home");
+        },
+        onFirstBackAtHome: () => notify("뒤로 버튼을 한 번 더 누르면 앱이 종료돼요."),
+    });
 
     // 가입 신청 폼 제출. 이름·전화번호·교회명·비밀번호를 검사한 뒤 가입을 요청한다.
     async function submitSignup(event: FormEvent<HTMLFormElement>) {
@@ -1071,7 +1103,15 @@ export default function Page() {
                 </div>
             )}
             <header className="app-header">
-                <Link className="brand" href="/community/home" onClick={() => setStoredArea("home")}>
+                <Link
+                    className="brand"
+                    href="/community/home"
+                    replace
+                    onClick={() => {
+                        setStoredArea("home");
+                        setPendingArea("home");
+                    }}
+                >
                     <Mark small />
                     <span>사이</span>
                 </Link>
@@ -1080,9 +1120,13 @@ export default function Page() {
                     {!isPreview && (
                         <Link
                             href="/community/inbox"
+                            replace
                             className="header-inbox"
                             aria-label={`내 소식함${inboxUnreadCount > 0 ? `, 읽지 않은 소식 ${inboxUnreadCount}개` : ""}`}
-                            onClick={() => setStoredArea("inbox")}
+                            onClick={() => {
+                                setStoredArea("inbox");
+                                setPendingArea("inbox");
+                            }}
                         >
                             <Icon name="bell" />
                             {inboxUnreadCount > 0 && (
@@ -1659,9 +1703,13 @@ export default function Page() {
                     <Link
                         key={item.id}
                         href={`/community/${item.id}`}
-                        onClick={() => setStoredArea(item.id)}
-                        className={area === item.id ? "active" : ""}
-                        aria-current={area === item.id ? "page" : undefined}
+                        replace
+                        onClick={() => {
+                            setStoredArea(item.id);
+                            setPendingArea(item.id);
+                        }}
+                        className={navArea === item.id ? "active" : ""}
+                        aria-current={navArea === item.id ? "page" : undefined}
                     >
                         <Icon name={item.icon} />
                         <span>{item.label}</span>

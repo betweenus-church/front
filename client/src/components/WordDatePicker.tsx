@@ -27,7 +27,6 @@ export default function WordDatePicker({ value, maxDate, onChange }: Props) {
 
     useEffect(() => {
         if (!open) return;
-        setMonth(selected.slice(0, 7));
         // 달력 바깥을 누르면 달력을 닫는다.
         const onPointerDown = (event: PointerEvent) => {
             if (!root.current?.contains(event.target as Node)) setOpen(false);
@@ -45,7 +44,7 @@ export default function WordDatePicker({ value, maxDate, onChange }: Props) {
             document.removeEventListener("pointerdown", onPointerDown);
             document.removeEventListener("keydown", onKeyDown);
         };
-    }, [open, selected]);
+    }, [open]);
 
     const [year, number] = month.split("-").map(Number);
     const firstWeekday = new Date(Date.UTC(year, number - 1, 1)).getUTCDay();
@@ -68,7 +67,11 @@ export default function WordDatePicker({ value, maxDate, onChange }: Props) {
                 aria-expanded={open}
                 aria-haspopup="dialog"
                 aria-controls="word-calendar"
-                onClick={() => setOpen((current) => !current)}
+                onClick={() => {
+                    // 달력을 열 때 고른 날짜가 있는 달부터 보여 준다.
+                    if (!open) setMonth(selected.slice(0, 7));
+                    setOpen(!open);
+                }}
             >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" strokeWidth="1.7" />

@@ -74,39 +74,39 @@ export default function NewsPage() {
     const [filter, setFilter] = useState<NewsCategory | "all">("all");
     const [items, setItems] = useState<NewsItem[]>([]);
     const [item, setItem] = useState<NewsItem | null>(null);
-    const [state, setState] = useState<"loading" | "ready" | "error" | "missing">("loading");
+    // 마지막으로 끝난 요청(목록·분류 또는 소식 번호, 다시 시도 횟수)과 그 결과. 지금 화면의 요청과 같을 때만 결과로 쓴다.
+    const [loaded, setLoaded] = useState<{ key: string; status: "ready" | "error" | "missing" } | null>(null);
     const [revision, setRevision] = useState(0);
     const approved = sessionReady && membershipStatus === "approved" && !mustChangePassword;
+    const invalidId = id !== null && (!Number.isInteger(id) || id <= 0);
+    const requestKey = `${id ?? "list"}:${filter}:${revision}`;
+    // 화면 상태는 effect에서 따로 바꾸지 않고, 주소와 마지막 결과로 계산한다.
+    const state = invalidId ? "missing" : loaded?.key === requestKey ? loaded.status : "loading";
 
     useEffect(() => {
         void syncSession();
     }, [syncSession]);
 
     useEffect(() => {
-        if (!approved) return;
+        if (!approved || invalidId) return;
         const controller = new AbortController();
-        setState("loading");
         const path = id === null ? `/news${filter === "all" ? "" : `?category=${filter}`}` : `/news/${id}`;
-        if (id !== null && (!Number.isInteger(id) || id <= 0)) {
-            setState("missing");
-            return;
-        }
         void (
             id === null
                 ? api<NewsItem[]>(path, { signal: controller.signal }).then((data) => {
                       setItems(data);
-                      setState("ready");
+                      setLoaded({ key: requestKey, status: "ready" });
                   })
                 : api<NewsItem>(path, { signal: controller.signal }).then((data) => {
                       setItem(data);
-                      setState("ready");
+                      setLoaded({ key: requestKey, status: "ready" });
                   })
         ).catch((error: { status?: number }) => {
             if (controller.signal.aborted) return;
-            setState(error.status === 404 ? "missing" : "error");
+            setLoaded({ key: requestKey, status: error.status === 404 ? "missing" : "error" });
         });
         return () => controller.abort();
-    }, [approved, filter, id, revision]);
+    }, [approved, filter, id, invalidId, requestKey]);
 
     return (
         <div className={styles.shell}>

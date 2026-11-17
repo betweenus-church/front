@@ -55,24 +55,38 @@ export default function InboxPage({ onUnreadChange }: { onUnreadChange: (count: 
     const [allBusy, setAllBusy] = useState(false);
     const [actionError, setActionError] = useState("");
 
-    // 서버에서 알림 목록과 안 읽은 수를 불러온다.
-    async function load() {
-        setStatus("loading");
-        try {
-            const result = await api<InboxResponse>("/inbox");
-            setItems(result.items);
-            setUnreadCount(result.unreadCount);
-            onUnreadChange(result.unreadCount);
-            setStatus("ready");
-        } catch (error) {
-            setStatus(
-                error instanceof ApiError && (error.status === 401 || error.status === 403) ? "unauthorized" : "error",
-            );
-        }
+    // 받아 온 알림 목록과 안 읽은 수를 화면에 반영한다.
+    function applyInbox(result: InboxResponse) {
+        setItems(result.items);
+        setUnreadCount(result.unreadCount);
+        onUnreadChange(result.unreadCount);
+        setStatus("ready");
+    }
+    // 불러오기에 실패하면 로그인 문제인지, 그 밖의 오류인지 나눠 표시한다.
+    function failInbox(error: unknown) {
+        setStatus(
+            error instanceof ApiError && (error.status === 401 || error.status === 403) ? "unauthorized" : "error",
+        );
     }
 
+    // "다시 시도"를 누르면 불러오는 중으로 바꾸고 다시 불러온다.
+    function reload() {
+        setStatus("loading");
+        api<InboxResponse>("/inbox")
+            .then((result) => applyInbox(result))
+            .catch((error: unknown) => failInbox(error));
+    }
+
+    // 처음 열 때 불러온다. 상태는 처음부터 "불러오는 중"이고, 응답이 온 뒤 콜백에서만 바꾼다.
+    // (async 함수 안의 await 뒤에서 바꿔도 ESLint는 effect 안에서 바로 바꾸는 것으로 본다.)
     useEffect(() => {
-        void load();
+        const controller = new AbortController();
+        api<InboxResponse>("/inbox", { signal: controller.signal })
+            .then((result) => applyInbox(result))
+            .catch((error: unknown) => {
+                if (!controller.signal.aborted) failInbox(error);
+            });
+        return () => controller.abort();
     }, []);
 
     // 알림을 누르면 읽음 처리한 뒤 해당 화면으로 이동한다.
@@ -134,7 +148,7 @@ export default function InboxPage({ onUnreadChange }: { onUnreadChange: (count: 
             {status === "error" && (
                 <div className={styles.state} role="alert">
                     소식을 불러오지 못했어요.
-                    <button type="button" onClick={() => void load()}>
+                    <button type="button" onClick={reload}>
                         다시 시도
                     </button>
                 </div>

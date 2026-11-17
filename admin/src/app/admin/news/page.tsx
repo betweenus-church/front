@@ -107,28 +107,31 @@ export default function AdminNewsPage() {
     const [error, setError] = useState("");
     const [listError, setListError] = useState("");
     const [revision, setRevision] = useState(0);
-    const [coverPreview, setCoverPreview] = useState<string | null>(null);
     const [coverProcessing, setCoverProcessing] = useState(false);
     const [coverStatus, setCoverStatus] = useState("");
     const coverSelection = useRef(0);
     const [leaveHref, setLeaveHref] = useState<string | null>(null);
     const [savedWasEdit, setSavedWasEdit] = useState(false);
 
+    // 새로 고른 대표 사진은 미리보기 주소를 만들고, 바뀌거나 화면을 떠나면 그 주소를 해제한다.
+    const coverObjectUrl = useMemo(() => (draft.cover ? URL.createObjectURL(draft.cover) : null), [draft.cover]);
     useEffect(() => {
-        let objectUrl: string | null = null;
-        if (draft.cover) {
-            objectUrl = URL.createObjectURL(draft.cover);
-            setCoverPreview(objectUrl);
-        } else setCoverPreview(draft.removeCover ? null : (selected?.coverUrl ?? null));
         return () => {
-            if (objectUrl) URL.revokeObjectURL(objectUrl);
+            if (coverObjectUrl) URL.revokeObjectURL(coverObjectUrl);
         };
-    }, [draft.cover, draft.removeCover, selected?.coverUrl]);
+    }, [coverObjectUrl]);
+    // 미리보기는 따로 저장하지 않고 고른 사진·삭제 여부·기존 사진으로 계산한다.
+    const coverPreview = coverObjectUrl ?? (draft.removeCover ? null : (selected?.coverUrl ?? null));
+
+    // 목록을 다시 불러온다. 불러오는 중 표시와 오류 문구는 요청을 보내는 쪽에서 먼저 정리한다.
+    function reloadList() {
+        setLoading(true);
+        setListError("");
+        setRevision((value) => value + 1);
+    }
 
     useEffect(() => {
         const controller = new AbortController();
-        setLoading(true);
-        setListError("");
         void api<NewsItem[]>("/admin/news", { signal: controller.signal })
             .then(setItems)
             .catch(() => {
@@ -299,7 +302,7 @@ export default function AdminNewsPage() {
             setSelected(saved);
             setSavedWasEdit(editing);
             setEditing(false);
-            setRevision((value) => value + 1);
+            reloadList();
             setView("saved");
         } catch (failure) {
             setError(
@@ -319,7 +322,7 @@ export default function AdminNewsPage() {
         setError("");
         try {
             await api<{ ok: boolean }>(`/admin/news/${selected.id}`, { method: "DELETE" });
-            setRevision((value) => value + 1);
+            reloadList();
             setView("deleted");
         } catch {
             setError("삭제하지 못했어요. 다시 시도해 주세요.");
@@ -429,7 +432,7 @@ export default function AdminNewsPage() {
                             ) : listError ? (
                                 <div className={styles.empty} role="alert">
                                     {listError}
-                                    <button type="button" onClick={() => setRevision((value) => value + 1)}>
+                                    <button type="button" onClick={reloadList}>
                                         다시 시도
                                     </button>
                                 </div>

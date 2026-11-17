@@ -2,7 +2,7 @@
 
 import { clientHome } from "@sai/shared/urls";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { api, json } from "@sai/shared/api";
 import { churchToday, displayDate, type DailyWord } from "@sai/shared/daily-word";
 import { useAdminCounts } from "../use-admin-counts";
@@ -57,6 +57,11 @@ const statusLabels: Record<NoticeStatus, string> = {
     ended: "게시 종료",
 };
 // 현재 단계 번호로 어느 탭(기본/관리자/공지/푸시)인지 정한다.
+// 바뀌지 않는 값을 읽을 때 쓰는 빈 구독(오늘 날짜는 화면을 처음 열 때 한 번만 정한다).
+function subscribeNothing() {
+    return () => {};
+}
+
 const tabForStep = (step: Step): Tab =>
     step === "S45"
         ? "push"
@@ -153,7 +158,11 @@ export default function AdminSettingsPage() {
     const [dailyWords, setDailyWords] = useState<DailyWord[]>([]);
     const [dailyWordsLoading, setDailyWordsLoading] = useState(true);
     const [dailyWordsError, setDailyWordsError] = useState("");
-    const [dailyWordDate, setDailyWordDate] = useState("");
+    // 운영자가 고른 날짜. 고르기 전에는 오늘(한국 시간) 날짜를 쓴다.
+    const [pickedDailyWordDate, setDailyWordDate] = useState("");
+    // 서버에서 그릴 때는 날짜를 비워 두고, 브라우저에서 오늘 날짜로 바뀐다(예전 첫 effect와 같은 동작).
+    const todayDate = useSyncExternalStore(subscribeNothing, churchToday, () => "");
+    const dailyWordDate = pickedDailyWordDate || todayDate;
     const [dailyWordDraft, setDailyWordDraft] = useState({
         reference: "",
         scriptureText: "",
@@ -179,7 +188,6 @@ export default function AdminSettingsPage() {
     const [manualTarget, setManualTarget] = useState("");
 
     useEffect(() => {
-        setDailyWordDate(churchToday());
         void api<DailyWord[]>("/admin/daily-words")
             .then(setDailyWords)
             .catch(() => setDailyWordsError("날짜별 말씀 목록을 불러오지 못했어요."))
@@ -207,8 +215,6 @@ export default function AdminSettingsPage() {
     useEffect(() => {
         if (step !== "S45") return;
         const controller = new AbortController();
-        setNewsLoading(true);
-        setNewsError("");
         void Promise.all([
             api<NewsItem[]>("/admin/news", { signal: controller.signal }),
             api<ApiNotice[]>("/admin/notices", { signal: controller.signal }),
@@ -236,10 +242,14 @@ export default function AdminSettingsPage() {
         return () => controller.abort();
     }, [step]);
 
-    useEffect(() => {
-        const found = dailyWords.find((item) => item.date === dailyWordDate);
+    // 날짜를 바꾸거나 말씀 목록을 새로 받으면 저장 오류를 지우고, 이미 저장된 말씀이 있으면 입력칸에 채운다.
+    // effect가 아니라 화면을 그리는 중에 한 번만 맞춘다(React 문서의 '값이 바뀔 때 상태 맞추기' 방식).
+    const [dailyWordSynced, setDailyWordSynced] = useState<{ date: string; words: DailyWord[] } | null>(null);
+    if (dailyWordSynced?.date !== dailyWordDate || dailyWordSynced.words !== dailyWords) {
+        setDailyWordSynced({ date: dailyWordDate, words: dailyWords });
         setDailyWordSaveError("");
-        if (found) {
+        const found = dailyWords.find((item) => item.date === dailyWordDate);
+        if (found)
             setDailyWordDraft({
                 reference: found.reference,
                 scriptureText: found.scriptureText ?? "",
@@ -249,9 +259,11 @@ export default function AdminSettingsPage() {
                 question: found.question,
                 readingUrl: found.readingUrl ?? "",
             });
-            return;
-        }
-        if (!dailyWordDate) return;
+    }
+
+    // 저장된 말씀이 없는 날짜면 자동 말씀을 불러와 입력칸에 채운다.
+    useEffect(() => {
+        if (!dailyWordDate || dailyWords.some((item) => item.date === dailyWordDate)) return;
         const controller = new AbortController();
         void api<DailyWord>(`/daily-word?date=${dailyWordDate}`, { signal: controller.signal })
             .then((word) =>
@@ -403,6 +415,11 @@ export default function AdminSettingsPage() {
     // 다른 단계 화면으로 이동하고 안내 문구를 지운다.
     function move(next: Step) {
         setToast("");
+        // 게시글 연결 화면으로 들어갈 때 불러오는 중 표시를 켜고 이전 오류를 지운다(목록은 effect가 받는다).
+        if (next === "S45" && step !== "S45") {
+            setNewsLoading(true);
+            setNewsError("");
+        }
         setStep(next);
     }
     // 공지 검색어와 상태 필터를 적용한다.

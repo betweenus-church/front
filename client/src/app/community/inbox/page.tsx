@@ -1,6 +1,4 @@
-import ClientApp from "../../../components/ClientApp";
-
-// 알림함 주소(/community/inbox). 메인 앱 화면을 그린다.
+// 알림함 주소(/community/inbox). 화면은 community/layout.tsx가 그린다(탭을 바꿔도 앱 상태 유지).
 export default function InboxRoute() {
-    return <ClientApp />;
+    return null;
 }
